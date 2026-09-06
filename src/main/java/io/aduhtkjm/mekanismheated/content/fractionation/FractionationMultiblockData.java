@@ -1,9 +1,11 @@
 package io.aduhtkjm.mekanismheated.content.fractionation;
 
 import io.aduhtkjm.mekanismheated.Config;
+import io.aduhtkjm.mekanismheated.recipe.BasicFractionationRecipe;
 import io.aduhtkjm.mekanismheated.recipe.FractionationRecipe;
 import io.aduhtkjm.mekanismheated.recipe.FractionationRecipe.BankOutput;
 import io.aduhtkjm.mekanismheated.recipe.ModRecipeTypes;
+import io.aduhtkjm.mekanismheated.recipe.PassiveFractionationRecipe;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.ArrayList;
@@ -200,15 +202,25 @@ public class FractionationMultiblockData extends MultiblockData {
     }
 
     /**
-     * Runs fractionation recipes: consumes matching fluid from the sump and deposits the outputs into their target banks.
+     * Runs fractionation recipes.
+     *
+     * <p>While the feed sump holds fluid the matching input-based recipe is used and that fluid is consumed; while the sump
+     * is empty, passive generation takes over and a {@link PassiveFractionationRecipe} produces its banked outputs from the
+     * environment, consuming nothing. Both obey the same temperature window and speed-scaling rules.</p>
      *
      * @return {@code true} if the processing state changed and an update packet should be sent.
      */
     private boolean processRecipes(Level world) {
         boolean wasProcessing = processing;
         FluidStack current = inputTank.getFluid();
-        FractionationRecipe recipe = null;
-        if (!current.isEmpty()) {
+        FractionationRecipe recipe;
+        if (current.isEmpty()) {
+            //Passive generation only runs on an empty sump; the (empty) fluid input is ignored by the recipe itself.
+            recipe = world.getRecipeManager()
+                  .getRecipeFor(ModRecipeTypes.TYPE_FRACTIONATING_PASSIVE.value(), new SingleFluidRecipeInput(FluidStack.EMPTY), world)
+                  .map(RecipeHolder::value)
+                  .orElse(null);
+        } else {
             recipe = world.getRecipeManager()
                   .getRecipeFor(ModRecipeTypes.TYPE_FRACTIONATING.value(), new SingleFluidRecipeInput(current), world)
                   .map(RecipeHolder::value)
@@ -219,17 +231,14 @@ public class FractionationMultiblockData extends MultiblockData {
             return wasProcessing != processing;
         }
         //Speed scales linearly from zero ops at min temperature up to nominal speed at base temperature.
-        double span = recipe.getBaseTemperature() - recipe.getMinTemperature();
-        double temperature = getTemperature();
-        double rate = span <= 0 ? 1 : temperature > recipe.getMaxTemperature() ? 0 : Math.clamp((temperature - recipe.getMinTemperature()) / span, 0, 1);
-        progress += rate;
+        progress += processingRate(recipe);
         int operations = (int) progress;
         if (operations <= 0) {
             processing = false;
             return wasProcessing;
         }
         int performed = 0;
-        while (performed < operations && performOperation(recipe)) {
+        while (performed < operations && operate(recipe)) {
             performed++;
         }
         progress -= performed;
@@ -238,18 +247,68 @@ public class FractionationMultiblockData extends MultiblockData {
     }
 
     /**
-     * Attempts to run a single operation of the given recipe.
+     * Linear processing rate in operations per tick: zero at the minimum temperature, nominal at the base temperature, and
+     * zero again above the maximum temperature.
+     */
+    private double processingRate(FractionationRecipe recipe) {
+        double span = recipe.getBaseTemperature() - recipe.getMinTemperature();
+        double temperature = getTemperature();
+        return span <= 0 ? 1 : temperature > recipe.getMaxTemperature() ? 0 : Math.clamp((temperature - recipe.getMinTemperature()) / span, 0, 1);
+    }
+
+    /**
+     * Dispatches a single operation to the concrete recipe: passive recipes only fill the output banks, while input-based
+     * recipes also consume their matching input fluid from the sump.
      *
      * @return {@code true} if the operation was performed.
      */
-    private boolean performOperation(FractionationRecipe recipe) {
+    private boolean operate(FractionationRecipe recipe) {
+        if (recipe instanceof PassiveFractionationRecipe passive) {
+            return performPassiveOperation(passive);
+        }
+        if (recipe instanceof BasicFractionationRecipe input) {
+            return performOperation(input);
+        }
+        return false;
+    }
+
+    /**
+     * Attempts one operation of an input-based recipe: consumes the matching sump fluid and deposits the banked outputs.
+     *
+     * @return {@code true} if the operation was performed.
+     */
+    private boolean performOperation(BasicFractionationRecipe recipe) {
         FluidStack current = inputTank.getFluid();
         FluidStack required = recipe.getInput().getMatchingInstance(current);
         if (required.isEmpty() || required.getAmount() > inputTank.getFluidAmount()) {
             return false;
         }
-        List<BankOutput> outputs = recipe.getOutputs();
-        //Simulate all deposits first so we never consume input without being able to produce the outputs
+        if (!canDeposit(recipe.getOutputs())) {
+            return false;
+        }
+        inputTank.extract(required.getAmount(), Action.EXECUTE, AutomationType.INTERNAL);
+        deposit(recipe.getOutputs());
+        return true;
+    }
+
+    /**
+     * Attempts one operation of a passive recipe: deposits the banked outputs, consuming nothing from the sump.
+     *
+     * @return {@code true} if the operation was performed.
+     */
+    private boolean performPassiveOperation(PassiveFractionationRecipe recipe) {
+        if (!canDeposit(recipe.getOutputs())) {
+            return false;
+        }
+        deposit(recipe.getOutputs());
+        return true;
+    }
+
+    /**
+     * Simulates depositing every output first, so an operation never advances (or consumes input) unless the full set of
+     * outputs can be produced.
+     */
+    private boolean canDeposit(List<BankOutput> outputs) {
         for (BankOutput output : outputs) {
             if (output.bank() >= banks.size()) {
                 return false;
@@ -258,11 +317,16 @@ public class FractionationMultiblockData extends MultiblockData {
                 return false;
             }
         }
-        inputTank.extract(required.getAmount(), Action.EXECUTE, AutomationType.INTERNAL);
+        return true;
+    }
+
+    /**
+     * Commits the banked outputs. Only call after {@link #canDeposit(List)} has returned {@code true}.
+     */
+    private void deposit(List<BankOutput> outputs) {
         for (BankOutput output : outputs) {
             banks.get(output.bank()).insert(output.stack().copy(), Action.EXECUTE, AutomationType.INTERNAL);
         }
-        return true;
     }
 
     private boolean updateScales() {

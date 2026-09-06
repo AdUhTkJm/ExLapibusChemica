@@ -2,13 +2,23 @@ package io.aduhtkjm.mekanismheated.recipe;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import mekanism.api.annotations.NothingNullByDefault;
 import mekanism.api.recipes.ingredients.FluidStackIngredient;
+import mekanism.api.recipes.vanilla_input.SingleFluidRecipeInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * A fractionation recipe that consumes a matching fluid from the tower's feed sump and splits it into its banked outputs.
+ *
+ * @see PassiveFractionationRecipe for the inputless variant that generates outputs from the environment.
+ */
 @NothingNullByDefault
-public class BasicFractionationRecipe extends FractionationRecipe {
+public class BasicFractionationRecipe extends FractionationRecipe implements Predicate<@NotNull FluidStack> {
 
     private final FluidStackIngredient input;
     private final List<BankOutput> outputs;
@@ -24,31 +34,7 @@ public class BasicFractionationRecipe extends FractionationRecipe {
      */
     public BasicFractionationRecipe(FluidStackIngredient input, List<BankOutput> outputs, double minTemperature, double maxTemperature, double baseTemperature) {
         this.input = Objects.requireNonNull(input, "Fluid input cannot be null.");
-        Objects.requireNonNull(outputs, "Outputs cannot be null.");
-        if (outputs.isEmpty()) {
-            throw new IllegalArgumentException("Fractionation recipes must have at least one output.");
-        }
-        boolean[] seenBanks = new boolean[MAX_BANKS];
-        for (BankOutput output : outputs) {
-            Objects.requireNonNull(output, "Output cannot be null.");
-            Objects.requireNonNull(output.stack(), "Output fluid cannot be null.");
-            if (output.stack().isEmpty() || output.stack().getAmount() <= 0) {
-                throw new IllegalArgumentException("Output fluid amount must be positive.");
-            }
-            if (output.bank() < 0 || output.bank() >= MAX_BANKS) {
-                throw new IllegalArgumentException("Output bank index must be between 0 and " + (MAX_BANKS - 1) + ", got " + output.bank() + ".");
-            }
-            if (seenBanks[output.bank()]) {
-                throw new IllegalArgumentException("Duplicate output bank index " + output.bank() + ".");
-            }
-            seenBanks[output.bank()] = true;
-        }
-        if (minTemperature <= 0) {
-            throw new IllegalArgumentException("Minimum temperature must be greater than zero.");
-        }
-        if (baseTemperature < minTemperature) {
-            throw new IllegalArgumentException("Base temperature must be at least the minimum temperature.");
-        }
+        validate(outputs, minTemperature, baseTemperature);
         this.outputs = List.copyOf(outputs);
         this.minTemperature = minTemperature;
         this.maxTemperature = maxTemperature;
@@ -56,6 +42,18 @@ public class BasicFractionationRecipe extends FractionationRecipe {
     }
 
     @Override
+    public boolean matches(SingleFluidRecipeInput input, Level level) {
+        return !isIncomplete() && test(input.fluid());
+    }
+
+    @Override
+    public boolean test(FluidStack fluidStack) {
+        return input.test(fluidStack);
+    }
+
+    /**
+     * Gets the fluid ingredient fed through the valves into the sump.
+     */
     public FluidStackIngredient getInput() {
         return input;
     }
@@ -85,6 +83,11 @@ public class BasicFractionationRecipe extends FractionationRecipe {
     @Override
     public double getBaseTemperature() {
         return baseTemperature;
+    }
+
+    @Override
+    public RecipeType<BasicFractionationRecipe> getType() {
+        return ModRecipeTypes.TYPE_FRACTIONATING.value();
     }
 
     @Override

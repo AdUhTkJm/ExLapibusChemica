@@ -4,9 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.aduhtkjm.mekanismheated.Mod;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.Objects;
 import mekanism.api.recipes.MekanismRecipe;
-import mekanism.api.recipes.ingredients.FluidStackIngredient;
 import mekanism.api.recipes.vanilla_input.SingleFluidRecipeInput;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -17,21 +16,22 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * Input: FluidStack (fed into the tower's feed sump)
- * <br>
- * Output: multiple fluid stacks, each targeting a specific output bank of the tower.
- * <br>
- * Condition: the tower must be at least {@link #getMinTemperature()} Kelvin to process; processing speed scales linearly,
- * reaching nominal speed at {@link #getBaseTemperature()} Kelvin.
+ * Common base for the fractionation tower's recipes.
+ *
+ * <p>A fractionation recipe produces one or more fluid outputs, each targeting a specific output bank of the tower, and
+ * runs within a temperature window: it cannot process below {@link #getMinTemperature()} Kelvin, reaches nominal speed at
+ * {@link #getBaseTemperature()} Kelvin, and stops processing above {@link #getMaxTemperature()} Kelvin.</p>
+ *
+ * <p>Two concrete forms exist: {@link BasicFractionationRecipe}, which consumes a matching fluid from the tower's feed
+ * sump, and {@link PassiveFractionationRecipe}, which generates its outputs from the environment and only runs while the
+ * sump is empty.</p>
  */
-public abstract class FractionationRecipe extends MekanismRecipe<SingleFluidRecipeInput> implements Predicate<@NotNull FluidStack> {
+public abstract class FractionationRecipe extends MekanismRecipe<SingleFluidRecipeInput> {
 
     /** Maximum number of banks a fractionation tower can have (interior layers of an 18-high tower minus the sump). */
     public static final int MAX_BANKS = 15;
@@ -56,21 +56,6 @@ public abstract class FractionationRecipe extends MekanismRecipe<SingleFluidReci
               BankOutput::new);
     }
 
-    @Override
-    public boolean matches(SingleFluidRecipeInput input, Level level) {
-        return !isIncomplete() && test(input.fluid());
-    }
-
-    @Override
-    public boolean test(FluidStack fluidStack) {
-        return getInput().test(fluidStack);
-    }
-
-    /**
-     * Gets the fluid ingredient fed through the valves into the sump.
-     */
-    public abstract FluidStackIngredient getInput();
-
     /**
      * For JEI/display purposes, the outputs to display.
      *
@@ -94,6 +79,38 @@ public abstract class FractionationRecipe extends MekanismRecipe<SingleFluidReci
      */
     public abstract double getBaseTemperature();
 
+    /**
+     * Validates the parts shared by every fractionation recipe: at least one non-empty output with a positive amount and
+     * no duplicate bank indices, a minimum temperature above zero, and a base temperature of at least the minimum.
+     */
+    public static void validate(List<BankOutput> outputs, double minTemperature, double baseTemperature) {
+        Objects.requireNonNull(outputs, "Outputs cannot be null.");
+        if (outputs.isEmpty()) {
+            throw new IllegalArgumentException("Fractionation recipes must have at least one output.");
+        }
+        boolean[] seenBanks = new boolean[MAX_BANKS];
+        for (BankOutput output : outputs) {
+            Objects.requireNonNull(output, "Output cannot be null.");
+            Objects.requireNonNull(output.stack(), "Output fluid cannot be null.");
+            if (output.stack().isEmpty() || output.stack().getAmount() <= 0) {
+                throw new IllegalArgumentException("Output fluid amount must be positive.");
+            }
+            if (output.bank() < 0 || output.bank() >= MAX_BANKS) {
+                throw new IllegalArgumentException("Output bank index must be between 0 and " + (MAX_BANKS - 1) + ", got " + output.bank() + ".");
+            }
+            if (seenBanks[output.bank()]) {
+                throw new IllegalArgumentException("Duplicate output bank index " + output.bank() + ".");
+            }
+            seenBanks[output.bank()] = true;
+        }
+        if (minTemperature <= 0) {
+            throw new IllegalArgumentException("Minimum temperature must be greater than zero.");
+        }
+        if (baseTemperature < minTemperature) {
+            throw new IllegalArgumentException("Base temperature must be at least the minimum temperature.");
+        }
+    }
+
     @Override
     public boolean isIncomplete() {
         return getOutputs().isEmpty();
@@ -105,9 +122,7 @@ public abstract class FractionationRecipe extends MekanismRecipe<SingleFluidReci
     }
 
     @Override
-    public RecipeType<FractionationRecipe> getType() {
-        return ModRecipeTypes.TYPE_FRACTIONATING.value();
-    }
+    public abstract RecipeType<?> getType();
 
     @Override
     public String getGroup() {

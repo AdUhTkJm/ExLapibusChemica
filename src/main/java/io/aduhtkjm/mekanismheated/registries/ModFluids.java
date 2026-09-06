@@ -3,6 +3,8 @@ package io.aduhtkjm.mekanismheated.registries;
 import io.aduhtkjm.mekanismheated.Mod;
 import io.aduhtkjm.mekanismheated.item.ChemicalFormulaBucketItem;
 import java.util.function.UnaryOperator;
+
+import io.aduhtkjm.mekanismheated.item.Fe2O3DustItem;
 import mekanism.common.registration.impl.FluidDeferredRegister;
 import mekanism.common.registration.impl.FluidDeferredRegister.MekanismFluidType;
 import mekanism.common.registration.impl.FluidRegistryObject;
@@ -60,7 +62,8 @@ public class ModFluids {
     public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, BucketItem> MOLTEN_REINFORCED_ALLOY =
         FLUIDS.register("molten_reinforced_alloy", renderProperties -> renderProperties.tint(0xFF58D7F0));
 
-    // Placeholder. We deliberately do not display its bucket item in creative tab.
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, BucketItem> DUMMY_LIQUID =
-        FLUIDS.register("dummy_liquid", renderProperties -> renderProperties.tint(0xFF010101));
+    // Slurry
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> SLURRY_FE2O3 =
+        FLUIDS.register("slurry_fe2o3", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "Fe\u2082O\u2083"),
+            UnaryOperator.identity(), renderProperties -> renderProperties.tint(Fe2O3DustItem.TINT));
 }

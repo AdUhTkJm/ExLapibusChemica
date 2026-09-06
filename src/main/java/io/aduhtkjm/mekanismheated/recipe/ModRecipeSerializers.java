@@ -126,7 +126,7 @@ public class ModRecipeSerializers {
                       FluidStackIngredient.CODEC.fieldOf(SerializationConstants.INPUT).forGetter(BasicFractionationRecipe::getInput),
                       FractionationRecipe.BankOutput.CODEC.listOf().fieldOf("outputs").forGetter(BasicFractionationRecipe::getOutputsRaw),
                       POSITIVE_TEMPERATURE_CODEC.fieldOf("min_temperature").forGetter(BasicFractionationRecipe::getMinTemperature),
-                      POSITIVE_TEMPERATURE_CODEC.fieldOf("max_temperature").forGetter(BasicFractionationRecipe::getMinTemperature),
+                      POSITIVE_TEMPERATURE_CODEC.fieldOf("max_temperature").forGetter(BasicFractionationRecipe::getMaxTemperature),
                       TEMPERATURE_CODEC.fieldOf("base_temperature").forGetter(BasicFractionationRecipe::getBaseTemperature)
                 ).apply(instance, BasicFractionationRecipe::new)),
                 StreamCodec.composite(
@@ -137,6 +137,22 @@ public class ModRecipeSerializers {
                        ByteBufCodecs.DOUBLE, BasicFractionationRecipe::getBaseTemperature,
                        BasicFractionationRecipe::new
                  )));
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<PassiveFractionationRecipe>> FRACTIONATING_PASSIVE =
+          RECIPE_SERIALIZERS.register("fractionating_passive", () -> new MekanismRecipeSerializer<>(
+                RecordCodecBuilder.mapCodec(instance -> instance.group(
+                      FractionationRecipe.BankOutput.CODEC.listOf().fieldOf("outputs").forGetter(PassiveFractionationRecipe::getOutputsRaw),
+                      POSITIVE_TEMPERATURE_CODEC.fieldOf("min_temperature").forGetter(PassiveFractionationRecipe::getMinTemperature),
+                      POSITIVE_TEMPERATURE_CODEC.fieldOf("max_temperature").forGetter(PassiveFractionationRecipe::getMaxTemperature),
+                      TEMPERATURE_CODEC.fieldOf("base_temperature").forGetter(PassiveFractionationRecipe::getBaseTemperature)
+                ).apply(instance, PassiveFractionationRecipe::new)),
+                StreamCodec.composite(
+                      FractionationRecipe.BankOutput.STREAM_CODEC.apply(ByteBufCodecs.list()), PassiveFractionationRecipe::getOutputsRaw,
+                      ByteBufCodecs.DOUBLE, PassiveFractionationRecipe::getMinTemperature,
+                      ByteBufCodecs.DOUBLE, PassiveFractionationRecipe::getMaxTemperature,
+                      ByteBufCodecs.DOUBLE, PassiveFractionationRecipe::getBaseTemperature,
+                      PassiveFractionationRecipe::new
+                  )));
 
     @SuppressWarnings("all") // get(0) -> getFirst()
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<BasicAlloyRecipe>> ALLOYING =
