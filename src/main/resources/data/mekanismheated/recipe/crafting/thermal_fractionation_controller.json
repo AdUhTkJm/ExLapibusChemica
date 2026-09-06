@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "AGA",
+    "FBF",
+    "FFF"
+  ],
+  "key": {
+    "G": {
+      "tag": "c:glass_panes"
+    },
+    "A": {
+      "tag": "c:circuits/advanced"
+    },
+    "B": {
+      "item": "minecraft:bucket"
+    },
+    "F": {
+      "item": "mekanismheated:thermal_fractionation_block"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "mekanismheated:thermal_fractionation_controller"
+  }
+}

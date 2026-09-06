@@ -1,9 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "RBR",
-    "WSW",
-    "RBR"
+    "TRT",
+    "RSR",
+    "TIT"
   ],
   "key": {
     "S": {
@@ -15,12 +15,12 @@
     "R": {
       "tag": "c:dusts/redstone"
     },
-    "W": {
-      "item": "minecraft:water_bucket"
+    "I": {
+      "item": "minecraft:ice"
     }
   },
   "result": {
     "count": 1,
-    "id": "mekanismheated:condenser"
+    "id": "mekanismheated:cooler"
   }
 }

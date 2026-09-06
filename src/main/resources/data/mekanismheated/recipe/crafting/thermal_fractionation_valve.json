@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    "SAS",
+    " S "
+  ],
+  "key": {
+    "S": {
+      "tag": "c:ingots/steel"
+    },
+    "A": {
+      "tag": "c:circuits/advanced"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "mekanismheated:thermal_fractionation_valve"
+  }
+}

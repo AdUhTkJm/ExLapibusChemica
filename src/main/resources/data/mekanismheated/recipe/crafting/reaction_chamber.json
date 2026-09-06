@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ITI",
+    "ASA",
+    "IFI"
+  ],
+  "key": {
+    "T": {
+      "item": "mekanism:basic_chemical_tank"
+    },
+    "F": {
+      "item": "mekanism:basic_fluid_tank"
+    },
+    "I": {
+      "item": "mekanism:infused_alloy"
+    },
+    "A": {
+      "tag": "c:circuits/advanced"
+    },
+    "S": {
+      "item": "mekanism:steel_casing"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "mekanismheated:reaction_chamber"
+  }
+}

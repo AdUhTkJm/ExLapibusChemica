@@ -7,7 +7,7 @@
   ],
   "key": {
     "B": {
-      "item": "mekanism:basic_control_circuit"
+      "tag": "c:circuits/basic"
     },
     "R": {
       "tag": "c:dusts/redstone"
