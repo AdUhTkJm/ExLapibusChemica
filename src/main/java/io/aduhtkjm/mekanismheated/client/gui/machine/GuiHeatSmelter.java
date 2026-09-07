@@ -33,14 +33,14 @@ public class GuiHeatSmelter extends GuiConfigurableTile<TileEntityHeatSmelter, M
     protected void addGuiElements() {
         super.addGuiElements();
         addRenderableWidget(new GuiUpArrow(this, 68, 38));
-        addRenderableWidget(new GuiProgress(tile::getScaledProgress, ProgressType.BAR, this, 86, 38).recipeViewerCategory(tile))
+        addRenderableWidget(new GuiProgress(tile::getDisplayScaledProgress, ProgressType.BAR, this, 86, 38).recipeViewerCategory(tile))
               .warning(WarningType.INPUT_DOESNT_PRODUCE_OUTPUT, tile.getWarningCheck(RecipeError.INPUT_DOESNT_PRODUCE_OUTPUT));
-        addRenderableWidget(new GuiStackedFluidGauge(() -> tile.fluidTank, GaugeType.STANDARD, this, 139, 13))
+        addRenderableWidget(new GuiStackedFluidGauge(tile::getDisplayFluidTank, GaugeType.STANDARD, this, 139, 13))
               .warning(WarningType.NO_SPACE_IN_OUTPUT, tile.getWarningCheck(TileEntityHeatSmelter.NOT_ENOUGH_FLUID_OUTPUT_SPACE_ERROR));
         addRenderableWidget(new GuiHeatTab(this, () -> {
-            Component temp = MekanismUtils.getTemperatureDisplay(tile.getTotalTemperature(), TemperatureUnit.KELVIN, true);
-            Component transfer = MekanismUtils.getTemperatureDisplay(tile.getLastTransferLoss(), TemperatureUnit.KELVIN, false);
-            Component environment = MekanismUtils.getTemperatureDisplay(tile.getLastEnvironmentLoss(), TemperatureUnit.KELVIN, false);
+            Component temp = MekanismUtils.getTemperatureDisplay(tile.getDisplayTemperature(), TemperatureUnit.KELVIN, true);
+            Component transfer = MekanismUtils.getTemperatureDisplay(tile.getDisplayLastTransferLoss(), TemperatureUnit.KELVIN, false);
+            Component environment = MekanismUtils.getTemperatureDisplay(tile.getDisplayLastEnvironmentLoss(), TemperatureUnit.KELVIN, false);
             return List.of(MekanismLang.TEMPERATURE.translate(temp), MekanismLang.TRANSFERRED_RATE.translate(transfer), MekanismLang.DISSIPATED_RATE.translate(environment));
         }));
     }

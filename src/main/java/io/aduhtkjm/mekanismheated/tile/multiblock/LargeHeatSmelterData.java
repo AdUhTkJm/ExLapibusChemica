@@ -38,11 +38,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class LargeHeatSmelterData extends MultiblockData {
 
-    private BasicInventorySlot inputSlot;
-    private BasicInventorySlot outputSlot;
-    private BasicInventorySlot fuelSlot;
-    private MultiFluidTank fluidTank;
-    private VariableHeatCapacitor heatCapacitor;
+    private final BasicInventorySlot inputSlot;
+    private final BasicInventorySlot outputSlot;
+    private final BasicInventorySlot fuelSlot;
+    private final MultiFluidTank fluidTank;
+    private final VariableHeatCapacitor heatCapacitor;
 
     private double biomeAmbientTemp;
     private double progress;
@@ -57,9 +57,10 @@ public class LargeHeatSmelterData extends MultiblockData {
         super(tile);
         biomeAmbientTemp = HeatAPI.AMBIENT_TEMP;
         IContentsListener listener = createSaveAndComparator();
-        inputSlot = BasicInventorySlot.at(ConstantPredicates.alwaysTrue(), listener, 0, 0);
-        outputSlot = BasicInventorySlot.at(ConstantPredicates.alwaysTrue(), listener, 1, 0);
-        fuelSlot = BasicInventorySlot.at(ConstantPredicates.alwaysTrue(), listener, 2, 0);
+        //Use the same GUI positions as the standalone smelter so the reused GUI lays out identically
+        inputSlot = BasicInventorySlot.at(ConstantPredicates.alwaysTrue(), listener, 64, 17);
+        outputSlot = BasicInventorySlot.at(ConstantPredicates.alwaysTrue(), listener, 116, 35);
+        fuelSlot = BasicInventorySlot.at(ConstantPredicates.alwaysTrue(), listener, 64, 55);
         IContentsListener fluidListener = () -> {
             if (!isRemote()) {
                 fluidChanged = true;
@@ -116,6 +117,30 @@ public class LargeHeatSmelterData extends MultiblockData {
         return heatCapacitor.getTemperature();
     }
 
+    public double getProgress() {
+        return progress;
+    }
+
+    public void setProgress(double progress) {
+        this.progress = progress;
+    }
+
+    public double getLastTransferLoss() {
+        return lastTransferLoss;
+    }
+
+    public void setLastTransferLoss(double lastTransferLoss) {
+        this.lastTransferLoss = lastTransferLoss;
+    }
+
+    public double getLastEnvironmentLoss() {
+        return lastEnvironmentLoss;
+    }
+
+    public void setLastEnvironmentLoss(double lastEnvironmentLoss) {
+        this.lastEnvironmentLoss = lastEnvironmentLoss;
+    }
+
     @Override
     public boolean tick(Level world) {
         boolean needsPacket = super.tick(world);
@@ -147,22 +172,19 @@ public class LargeHeatSmelterData extends MultiblockData {
 
     private boolean processRecipes(Level world) {
         boolean wasProcessing = processing;
-        Level level = world;
-        if (level == null || level.isClientSide) {
-            processing = false;
-            return wasProcessing != processing;
+        if (world == null || world.isClientSide) {
+            return wasProcessing != (processing = false);
         }
         ItemStack input = inputSlot.getStack();
         double temperature = heatCapacitor.getTemperature();
-        HeatSmelterRecipe recipe = HeatSmelterLogic.findRecipeFor(level, input, temperature, true);
+        HeatSmelterRecipe recipe = HeatSmelterLogic.findRecipeFor(world, input, temperature, true);
         double speed = HeatSmelterLogic.speedFactor(temperature);
         if (recipe == null || speed <= 0 || !canOutput(recipe, input)) {
-            processing = false;
             if (recipe == null) {
                 //No valid input; discard any accumulated progress
                 progress = 0;
             }
-            return wasProcessing != processing;
+            return wasProcessing != (processing = false);
         }
         progress += speed;
         int required = Config.HeatSmelter.BASE_SPEED.get();

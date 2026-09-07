@@ -213,7 +213,9 @@ public class TileEntityHeatSmelter
         HeatCapacitorHelper builder = HeatCapacitorHelper.forSideWithConfig(this);
         builder.addCapacitor(heatCapacitor = BasicHeatCapacitor.create(Config.HeatSmelter.HEAT_CAPACITY.get(), Config.HeatSmelter.INVERSE_CONDUCTION_COEFFICIENT.get(),
               Config.HeatSmelter.INVERSE_INSULATION_COEFFICIENT.get(), ambientTemperature, listener));
-        return builder.build();
+        IHeatCapacitorHolder standalone = builder.build();
+        //While formed, expose the shared brain's heat capacitor; otherwise the per-block one
+        return side -> getMultiblock().isFormed() ? getMultiblock().getHeatCapacitors(side) : standalone.getHeatCapacitors(side);
     }
 
     @Override
@@ -231,7 +233,9 @@ public class TileEntityHeatSmelter
         for (MultiFluidTank.Slot slot : fluidTank.getSlots()) {
             builder.addTank(slot);
         }
-        return builder.build();
+        IFluidTankHolder standalone = builder.build();
+        //While formed, expose the shared brain's fluid tanks; otherwise the per-block ones
+        return side -> getMultiblock().isFormed() ? getMultiblock().getFluidTanks(side) : standalone.getTanks(side);
     }
 
     private boolean checkInputValidity(ItemStack item) {
@@ -254,7 +258,9 @@ public class TileEntityHeatSmelter
             .tracksWarnings(slot -> slot.warning(WarningType.NO_SPACE_IN_OUTPUT, getWarningCheck(RecipeError.NOT_ENOUGH_OUTPUT_SPACE)));
         builder.addSlot(fuelSlot = InputInventorySlot.at(this::checkFuelValidity, recipeCacheListener, 64, 55))
             .tracksWarnings(slot -> slot.warning(WarningType.NO_MATCHING_RECIPE, getWarningCheck(RecipeError.NOT_ENOUGH_INPUT)));
-        return builder.build();
+        IInventorySlotHolder standalone = builder.build();
+        //While formed, expose the shared brain's item slots; otherwise the per-block ones
+        return side -> getMultiblock().isFormed() ? getMultiblock().getInventorySlots(side) : standalone.getInventorySlots(side);
     }
 
     @Override
@@ -439,6 +445,11 @@ public class TileEntityHeatSmelter
         super.addContainerTrackers(container);
         container.track(SyncableDouble.create(this::getLastTransferLoss, value -> lastTransferLoss = value));
         container.track(SyncableDouble.create(this::getLastEnvironmentLoss, value -> lastEnvironmentLoss = value));
+        //While formed, sync the shared brain's live values to the client so the GUI shows real multiblock state
+        // (the per-block values above are dormant once formed). The setters write into the client-side brain instance.
+        container.track(SyncableDouble.create(() -> getMultiblock().getProgress(), value -> getMultiblock().setProgress(value)));
+        container.track(SyncableDouble.create(() -> getMultiblock().getLastTransferLoss(), value -> getMultiblock().setLastTransferLoss(value)));
+        container.track(SyncableDouble.create(() -> getMultiblock().getLastEnvironmentLoss(), value -> getMultiblock().setLastEnvironmentLoss(value)));
     }
 
     @NotNull
@@ -483,6 +494,43 @@ public class TileEntityHeatSmelter
 
     public MultiFluidTank getFluidTank() {
         return fluidTank;
+    }
+
+    /**
+     * The fluid tank the GUI should display: the shared brain's tank while formed, otherwise this block's own tank.
+     */
+    public MultiFluidTank getDisplayFluidTank() {
+        return getMultiblock().isFormed() ? getMultiblock().getFluidTank() : fluidTank;
+    }
+
+    /**
+     * The scaled (0-1) recipe progress the GUI should display: the shared brain's progress while formed, otherwise this
+     * block's own progress.
+     */
+    public double getDisplayScaledProgress() {
+        LargeHeatSmelterData multiblock = getMultiblock();
+        return multiblock.isFormed() ? multiblock.getProgress() / (double) Config.HeatSmelter.BASE_SPEED.get() : getScaledProgress();
+    }
+
+    /**
+     * The temperature the GUI should display: the shared brain's temperature while formed, otherwise this block's own.
+     */
+    public double getDisplayTemperature() {
+        return getMultiblock().isFormed() ? getMultiblock().getTemperature() : heatCapacitor.getTemperature();
+    }
+
+    /**
+     * The last heat transferred to/from neighbors, from the shared brain while formed, otherwise this block's own.
+     */
+    public double getDisplayLastTransferLoss() {
+        return getMultiblock().isFormed() ? getMultiblock().getLastTransferLoss() : lastTransferLoss;
+    }
+
+    /**
+     * The last heat lost to the environment, from the shared brain while formed, otherwise this block's own.
+     */
+    public double getDisplayLastEnvironmentLoss() {
+        return getMultiblock().isFormed() ? getMultiblock().getLastEnvironmentLoss() : lastEnvironmentLoss;
     }
 
     public double getLastTransferLoss() {
