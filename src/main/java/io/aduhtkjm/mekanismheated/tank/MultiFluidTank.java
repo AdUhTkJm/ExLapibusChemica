@@ -27,7 +27,7 @@ public class MultiFluidTank {
 
     public static final int DEFAULT_SLOT_COUNT = 16;
 
-    private final int totalCapacity;
+    private int totalCapacity;
     private final List<Slot> slots;
     @Nullable
     private final IContentsListener listener;
@@ -57,6 +57,20 @@ public class MultiFluidTank {
 
     public int getTotalCapacity() {
         return totalCapacity;
+    }
+
+    /**
+     * Changes the total capacity of this tank. Already stored fluid is kept as-is; it is not clamped to the new
+     * capacity. Intended for (re)configuring the tank to a scaled capacity, such as when a multiblock forms.
+     *
+     * @param newCapacity the new total capacity, must be at least zero
+     */
+    public void setTotalCapacity(int newCapacity) {
+        if (newCapacity < 0) {
+            throw new IllegalArgumentException("Capacity must be at least zero");
+        }
+        this.totalCapacity = newCapacity;
+        onContentsChanged();
     }
 
     public int getTotalAmount() {

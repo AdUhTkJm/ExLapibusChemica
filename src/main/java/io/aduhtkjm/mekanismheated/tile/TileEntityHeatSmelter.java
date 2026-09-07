@@ -7,6 +7,9 @@ import io.aduhtkjm.mekanismheated.recipe.cache.HeatSensitiveOneInputCachedRecipe
 import io.aduhtkjm.mekanismheated.recipe.lookup.monitor.HeatSmelterRecipeCacheLookupMonitor;
 import io.aduhtkjm.mekanismheated.registries.ModBlocks;
 import io.aduhtkjm.mekanismheated.tank.MultiFluidTank;
+import io.aduhtkjm.mekanismheated.tile.multiblock.LargeHeatSmelterData;
+import io.aduhtkjm.mekanismheated.tile.multiblock.ModLargeHeatSmelter;
+import io.aduhtkjm.mekanismheated.tile.prefab.TileEntityProgressMultiblockMachine;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -39,6 +42,7 @@ import mekanism.common.inventory.container.sync.SyncableDouble;
 import mekanism.common.inventory.slot.InputInventorySlot;
 import mekanism.common.inventory.slot.OutputInventorySlot;
 import mekanism.common.inventory.warning.WarningTracker.WarningType;
+import mekanism.common.lib.multiblock.MultiblockManager;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.recipe.IMekanismRecipeTypeProvider;
 import mekanism.common.recipe.lookup.IRecipeLookupHandler;
@@ -48,7 +52,6 @@ import mekanism.common.tile.component.TileComponentEjector;
 import mekanism.common.tile.component.config.ConfigInfo;
 import mekanism.common.tile.component.config.DataType;
 import mekanism.common.tile.component.config.slot.InventorySlotInfo;
-import mekanism.common.tile.prefab.TileEntityProgressMachine;
 import mekanism.common.util.EnumUtils;
 import mekanism.common.util.MekanismUtils;
 import mekanism.common.util.NBTUtils;
@@ -64,7 +67,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TileEntityHeatSmelter
-      extends TileEntityProgressMachine<HeatSmelterRecipe>
+      extends TileEntityProgressMultiblockMachine<LargeHeatSmelterData, HeatSmelterRecipe>
       implements IRecipeLookupHandler<HeatSmelterRecipe> {
 
     /** Error for the melting input slot, separate from the smelting input's error so their warnings do not cross-talk. */
@@ -193,6 +196,18 @@ public class TileEntityHeatSmelter
 
     @NotNull
     @Override
+    public LargeHeatSmelterData createMultiblock() {
+        return new LargeHeatSmelterData(this);
+    }
+
+    @NotNull
+    @Override
+    public MultiblockManager<LargeHeatSmelterData> getManager() {
+        return ModLargeHeatSmelter.LARGE_HEAT_SMELTER_MANAGER;
+    }
+
+    @NotNull
+    @Override
     protected IHeatCapacitorHolder getInitialHeatCapacitors(IContentsListener listener, IContentsListener recipeCacheListener, IContentsListener recipeCacheUnpauseListener,
           CachedAmbientTemperature ambientTemperature) {
         HeatCapacitorHelper builder = HeatCapacitorHelper.forSideWithConfig(this);
@@ -245,24 +260,29 @@ public class TileEntityHeatSmelter
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        boolean burning = burnFuel();
-        HeatTransfer transfer = simulate();
-        lastEnvironmentLoss = transfer.environmentTransfer();
-        lastTransferLoss = transfer.adjacentTransfer();
-        recipeCacheLookupMonitor.updateAndProcess();
-        //Keep the synced progress in step with the temperature-scaled fractional progress: the base implementation counts
-        // raw ticks, which would overflow the progress bar whenever the smelter runs slower than full speed
-        if (recipeCacheLookupMonitor.getCachedRecipe(0) instanceof HeatSensitiveOneInputCachedRecipe<?> cachedRecipe) {
-            setOperatingTicks(cachedRecipe.getProgressTicks());
+        //Tick the multiblock structure every tick (formed or not) so formation is detected and the shared brain runs
+        boolean multiblockPacket = tickMultiblock(getMultiblock());
+        //The per-block machine logic only runs while unformed; once formed the shared brain handles all processing
+        if (!getMultiblock().isFormed()) {
+            boolean burning = burnFuel();
+            HeatTransfer transfer = simulate();
+            lastEnvironmentLoss = transfer.environmentTransfer();
+            lastTransferLoss = transfer.adjacentTransfer();
+            recipeCacheLookupMonitor.updateAndProcess();
+            //Keep the synced progress in step with the temperature-scaled fractional progress: the base implementation counts
+            // raw ticks, which would overflow the progress bar whenever the smelter runs slower than full speed
+            if (recipeCacheLookupMonitor.getCachedRecipe(0) instanceof HeatSensitiveOneInputCachedRecipe<?> cachedRecipe) {
+                setOperatingTicks(cachedRecipe.getProgressTicks());
+            }
+            //Passively alloy the molten output in place; temperature-independent and energy-free since the metals are already molten
+            tryAlloying();
+            if (burning) {
+                //Only set active for burning if smelting didn't already set us active
+                setActive(true);
+                sendUpdatePacket = true;
+            }
         }
-        //Passively alloy the molten output in place; temperature-independent and energy-free since the metals are already molten
-        tryAlloying();
-        if (burning) {
-            //Only set active for burning if smelting didn't already set us active
-            setActive(true);
-            sendUpdatePacket = true;
-        }
-        return sendUpdatePacket;
+        return sendUpdatePacket | multiblockPacket;
     }
 
     /**
@@ -447,6 +467,22 @@ public class TileEntityHeatSmelter
 
     public BasicHeatCapacitor getHeatCapacitor() {
         return heatCapacitor;
+    }
+
+    public InputInventorySlot getInputSlot() {
+        return inputSlot;
+    }
+
+    public InputInventorySlot getFuelSlot() {
+        return fuelSlot;
+    }
+
+    public OutputInventorySlot getOutputSlot() {
+        return outputSlot;
+    }
+
+    public MultiFluidTank getFluidTank() {
+        return fluidTank;
     }
 
     public double getLastTransferLoss() {

@@ -3,6 +3,7 @@ package io.aduhtkjm.mekanismheated.tile.prefab;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+import mekanism.api.IConfigurable;
 import mekanism.api.SerializationConstants;
 import mekanism.api.recipes.MekanismRecipe;
 import mekanism.api.recipes.cache.CachedRecipe.OperationTracker.RecipeError;
@@ -69,7 +70,7 @@ import org.jetbrains.annotations.Nullable;
  * {@link #multiblockInventorySlotHolder()}, {@link #multiblockFluidTankHolder()}, {@link #multiblockHeatCapacitorHolder()})
  * from its three-argument {@code getInitial*} overrides.</p>
  */
-public abstract class TileEntityProgressMultiblockMachine<T extends MultiblockData, RECIPE extends MekanismRecipe<?>> extends TileEntityProgressMachine<RECIPE> implements IMultiblock<T> {
+public abstract class TileEntityProgressMultiblockMachine<T extends MultiblockData, RECIPE extends MekanismRecipe<?>> extends TileEntityProgressMachine<RECIPE> implements IMultiblock<T>, IConfigurable {
 
     private Structure structure = Structure.INVALID;
 
