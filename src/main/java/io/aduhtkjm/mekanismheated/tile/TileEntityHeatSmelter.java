@@ -22,7 +22,6 @@ import mekanism.api.heat.HeatAPI.HeatTransfer;
 import mekanism.api.recipes.cache.CachedRecipe;
 import mekanism.api.recipes.cache.CachedRecipe.OperationTracker;
 import mekanism.api.recipes.cache.CachedRecipe.OperationTracker.RecipeError;
-import mekanism.api.recipes.ingredients.FluidStackIngredient;
 import mekanism.api.recipes.inputs.IInputHandler;
 import mekanism.api.recipes.inputs.InputHelper;
 import mekanism.api.recipes.outputs.IOutputHandler;
@@ -42,7 +41,6 @@ import mekanism.common.inventory.slot.OutputInventorySlot;
 import mekanism.common.inventory.warning.WarningTracker.WarningType;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.recipe.IMekanismRecipeTypeProvider;
-import mekanism.common.recipe.MekanismRecipeType;
 import mekanism.common.recipe.lookup.IRecipeLookupHandler;
 import mekanism.common.recipe.lookup.monitor.RecipeCacheLookupMonitor;
 import mekanism.common.tile.component.TileComponentConfig;
@@ -58,10 +56,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
@@ -123,7 +119,7 @@ public class TileEntityHeatSmelter
     private boolean fluidChanged;
     /** The last successfully applied alloy configuration, cached to avoid re-scanning every recipe each tick. */
     @Nullable
-    private AlloyCache lastAlloy;
+    private HeatSmelterLogic.AlloyConfig lastAlloy;
 
     public TileEntityHeatSmelter(BlockPos pos, BlockState state) {
         super(ModBlocks.HEAT_SMELTER, pos, state, TRACKED_ERROR_TYPES, Config.HeatSmelter.BASE_SPEED.get());
@@ -275,21 +271,10 @@ public class TileEntityHeatSmelter
      * @return {@code true} if a fuel item was consumed.
      */
     private boolean burnFuel() {
-        var level = getLevel();
-        if (level == null)
-            return false;
-
-        if (canBurnFuel()) {
-            ItemStack fuel = fuelSlot.getStack();
-            ItemStackToHeatRecipe recipe = ModRecipeType.findFirstSingleItemRecipe(ModRecipeTypes.TYPE_FUEL_CONVERSION, level, fuel);
-            if (recipe != null) {
-                ItemStack itemInput = recipe.getInput().getMatchingInstance(fuel);
-                if (!itemInput.isEmpty()) {
-                    heatCapacitor.handleHeat(recipe.getOutput(itemInput));
-                    MekanismUtils.logMismatchedStackSize(fuelSlot.shrinkStack(itemInput.getCount(), Action.EXECUTE), itemInput.getCount());
-                    return true;
-                }
-            }
+        int consumed = HeatSmelterLogic.burnFuel(getLevel(), heatCapacitor.getTemperature(), heatCapacitor, fuelSlot.getStack());
+        if (consumed > 0) {
+            MekanismUtils.logMismatchedStackSize(fuelSlot.shrinkStack(consumed, Action.EXECUTE), consumed);
+            return true;
         }
         return false;
     }
@@ -311,23 +296,7 @@ public class TileEntityHeatSmelter
      * letting a too-cold smelter fall back to plain smelting.
      */
     private HeatSmelterRecipe findRecipe(ItemStack input, boolean enforceTemperature) {
-        Level level = getLevel();
-        if (level == null || input.isEmpty()) {
-            return null;
-        }
-        var oversmelt = ModRecipeType.findFirstSingleItemRecipe(ModRecipeTypes.TYPE_HEATED_SMELTING, level, input);
-        if (oversmelt != null && (!enforceTemperature || oversmelt.canProcess(this)))
-            return HeatSmelterRecipe.oversmelt(oversmelt);
-
-        var melt = ModRecipeType.findFirstSingleItemRecipe(ModRecipeTypes.TYPE_HEATED_MELTING, level, input);
-        if (melt != null && (!enforceTemperature || melt.canProcess(this)))
-            return HeatSmelterRecipe.melt(melt);
-
-        var smelt = MekanismRecipeType.SMELTING.getInputCache().findFirstRecipe(level, input);
-        if (smelt != null)
-            return HeatSmelterRecipe.smelt(smelt);
-
-        return null;
+        return HeatSmelterLogic.findRecipeFor(getLevel(), input, heatCapacitor.getTemperature(), enforceTemperature);
     }
 
     /**
@@ -367,110 +336,12 @@ public class TileEntityHeatSmelter
         if (!fluidChanged) {
             return;
         }
-
         Level level = getLevel();
         if (level == null || level.isClientSide) {
             return;
         }
         fluidChanged = false;
-        if (fluidTank.isEmpty()) {
-            return;
-        }
-        //Snapshot once; safe because we stop after the first operation applied this tick
-        List<FluidStack> fluids = fluidTank.getFluids();
-        //Fast path: if the last-applied recipe still matches, reuse it instead of re-scanning every alloy recipe
-        if (lastAlloy != null && applyAlloy(lastAlloy.input1(), lastAlloy.input2(), lastAlloy.output(), fluids)) {
-            return;
-        }
-        //Full scan: find any applicable recipe and remember it for the next tick
-        for (RecipeHolder<AlloyRecipe> holder : level.getRecipeManager().getAllRecipesFor(ModRecipeTypes.TYPE_ALLOYING.value())) {
-            AlloyRecipe recipe = holder.value();
-            if (applyAlloy(recipe.getInput1(), recipe.getInput2(), recipe.getOutput(), fluids)) {
-                lastAlloy = new AlloyCache(recipe.getInput1(), recipe.getInput2(), recipe.getOutput());
-                return;
-            }
-        }
-    }
-
-    /**
-     * If the output tank can currently satisfy the given alloy ingredients (both inputs present in sufficient amount and room
-     * for the output), performs one alloy operation: drains the two inputs and adds the alloy.
-     *
-     * @return {@code true} if the operation was applied.
-     */
-    private boolean applyAlloy(FluidStackIngredient in1, FluidStackIngredient in2, FluidStackIngredient output, List<FluidStack> fluids) {
-        Fluid outFluid = AlloyRecipe.outputFluid(output);
-        if (outFluid == null) {
-            return false;
-        }
-        FluidStack match1 = findMatchingFluid(in1, fluids);
-        FluidStack match2 = findMatchingFluid(in2, fluids);
-        if (match1 == null || match2 == null) {
-            return false;
-        }
-        int need1 = (int) in1.getNeededAmount(match1);
-        int need2 = (int) in2.getNeededAmount(match2);
-        boolean sameFluid = FluidStack.isSameFluidSameComponents(match1, match2);
-        if (sameFluid) {
-            if (match1.getAmount() < need1 + need2) {
-                return false;
-            }
-        } else if (match1.getAmount() < need1 || match2.getAmount() < need2) {
-            return false;
-        }
-        FluidStack outProbe = new FluidStack(outFluid, 1);
-        int outAmount = (int) output.getNeededAmount(outProbe);
-        if (outAmount <= 0) {
-            return false;
-        }
-        //Room available once the inputs have been drained (the alloy is typically volume-neutral, but need not be)
-        int projectedFree = fluidTank.getTotalNeeded() + need1 + need2;
-        if (projectedFree < outAmount) {
-            return false;
-        }
-        if (!fluidTank.containsFluid(outProbe)) {
-            //A new fluid type can only occupy an empty slot; verify draining frees one up (or one already exists)
-            int projectedEmpty = fluidTank.getSlots().size() - fluidTank.getFluidCount();
-            if (sameFluid) {
-                if (match1.getAmount() == need1 + need2) {
-                    projectedEmpty++;
-                }
-            } else {
-                if (match1.getAmount() == need1) {
-                    projectedEmpty++;
-                }
-                if (match2.getAmount() == need2) {
-                    projectedEmpty++;
-                }
-            }
-            if (projectedEmpty < 1) {
-                return false;
-            }
-        }
-        fluidTank.extract(match1, need1, Action.EXECUTE, AutomationType.INTERNAL);
-        fluidTank.extract(match2, need2, Action.EXECUTE, AutomationType.INTERNAL);
-        fluidTank.insert(outProbe.copyWithAmount(outAmount), Action.EXECUTE, AutomationType.INTERNAL);
-        return true;
-    }
-
-    /**
-     * Finds the first fluid in the given list that matches the provided ingredient (type match only; amounts are checked by the caller).
-     */
-    @Nullable
-    private FluidStack findMatchingFluid(FluidStackIngredient ingredient, List<FluidStack> fluids) {
-        for (FluidStack fluid : fluids) {
-            if (ingredient.test(fluid)) {
-                return fluid;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * The last alloy configuration successfully applied, so the same recipe can be reapplied without re-scanning every alloy
-     * recipe each tick.
-     */
-    private record AlloyCache(FluidStackIngredient input1, FluidStackIngredient input2, FluidStackIngredient output) {
+        lastAlloy = HeatSmelterLogic.tryAlloyOnce(level, fluidTank, lastAlloy);
     }
 
     @Nullable
@@ -533,15 +404,7 @@ public class TileEntityHeatSmelter
      * {@link Config.HeatSmelter#FULL_SPEED_TEMPERATURE}, and is clamped to a minimum of zero.
      */
     public double getSpeedFactor() {
-        double temperature = heatCapacitor.getTemperature();
-        double base = Config.HeatSmelter.BASE_TEMPERATURE.get();
-        double full = Config.HeatSmelter.FULL_SPEED_TEMPERATURE.get();
-        double range = full - base;
-        if (range <= 0) {
-            //Invalid configuration, treat everything above the base temperature as full speed
-            return temperature > base ? 1 : 0;
-        }
-        return Math.clamp((temperature - base) / range, 0, 1);
+        return HeatSmelterLogic.speedFactor(heatCapacitor.getTemperature());
     }
 
     /**
