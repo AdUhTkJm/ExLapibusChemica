@@ -76,9 +76,7 @@ public class LargeHeatSmelterData extends MultiblockData {
         inventorySlots.add(inputSlot);
         inventorySlots.add(outputSlot);
         inventorySlots.add(fuelSlot);
-        for (MultiFluidTank.Slot slot : fluidTank.getSlots()) {
-            fluidTanks.add(slot);
-        }
+        fluidTanks.addAll(fluidTank.getSlots());
         heatCapacitors.add(heatCapacitor);
     }
 
@@ -90,7 +88,7 @@ public class LargeHeatSmelterData extends MultiblockData {
      */
     public void configure(int volume) {
         fluidTank.setTotalCapacity(TileEntityHeatSmelter.MAX_FLUID * volume);
-        heatCapacitor.setHeatCapacity((double) Config.HeatSmelter.HEAT_CAPACITY.get() * volume, true);
+        heatCapacitor.setHeatCapacity(Config.HeatSmelter.HEAT_CAPACITY.get() * volume, true);
     }
 
     public BasicInventorySlot getInputSlot() {

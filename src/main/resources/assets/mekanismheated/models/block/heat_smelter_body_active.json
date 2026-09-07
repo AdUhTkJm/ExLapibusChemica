@@ -1,0 +1,6 @@
+{
+  "parent": "mekanismheated:block/heat_smelter_body",
+  "textures": {
+    "front": "mekanism:block/energized_smelter/front_active"
+  }
+}

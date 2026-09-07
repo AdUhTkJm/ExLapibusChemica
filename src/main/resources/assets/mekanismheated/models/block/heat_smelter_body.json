@@ -1,0 +1,73 @@
+{
+  "parent": "block/block",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "block/stone",
+    "back": "mekanismheated:block/heat_smelter/back",
+    "bottom": "mekanismheated:block/heat_smelter/bottom",
+    "front": "mekanismheated:block/heat_smelter/front",
+    "side": "mekanismheated:block/heat_smelter/side",
+    "top": "mekanismheated:block/heat_smelter/top",
+    "glass": "block/glass"
+  },
+  "elements": [
+    {
+      "comment": "1. 主体东侧大块 (10x16x16)",
+      "from": [6, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down":  { "uv": [6, 0, 16, 16], "texture": "#bottom" },
+        "up":    { "uv": [6, 0, 16, 16], "texture": "#top" },
+        "north": { "uv": [0, 0, 10, 16], "texture": "#front" },
+        "south": { "uv": [6, 0, 16, 16], "texture": "#back" },
+        "west":  { "uv": [0, 0, 16, 16], "texture": "#side" },
+        "east":  { "uv": [0, 0, 16, 16], "texture": "#side" }
+      }
+    },
+    {
+      "comment": "2. 主体西侧后方块 (6x16x10)",
+      "from": [0, 0, 6],
+      "to": [6, 16, 16],
+      "faces": {
+        "down":  { "uv": [0, 6, 6, 16],  "texture": "#bottom" },
+        "up":    { "uv": [0, 6, 6, 16],  "texture": "#top" },
+        "north": { "uv": [10, 0, 16, 16], "texture": "#front" },
+        "south": { "uv": [0, 0, 6, 16],  "texture": "#back" },
+        "west":  { "uv": [0, 0, 10, 16], "texture": "#side" }
+      }
+    },
+    {
+      "comment": "3. 玻璃下方底盖 (6x2x6)",
+      "from": [0, 0, 0],
+      "to": [6, 2, 6],
+      "faces": {
+        "down":  { "uv": [0, 0, 6, 6],     "texture": "#bottom" },
+        "up":    { "uv": [0, 0, 6, 6],     "texture": "#bottom" },
+        "north": { "uv": [10, 14, 16, 16], "texture": "#front" },
+        "west":  { "uv": [10, 14, 16, 16], "texture": "#side" }
+      }
+    },
+    {
+      "comment": "4. 玻璃上方顶盖 (6x2x6)",
+      "from": [0, 14, 0],
+      "to": [6, 16, 6],
+      "faces": {
+        "down":  { "uv": [0, 0, 6, 6],   "texture": "#top" },
+        "up":    { "uv": [0, 0, 6, 6],   "texture": "#top" },
+        "north": { "uv": [10, 0, 16, 2], "texture": "#front" },
+        "west":  { "uv": [10, 0, 16, 2], "texture": "#side" }
+      }
+    },
+    {
+      "comment": "5. 西南角的竖直玻璃棱 (6x12x6)",
+      "from": [0, 2, 0],
+      "to": [6, 14, 6],
+      "faces": {
+        "north": { "uv": [10, 0, 16, 12], "texture": "#glass" },
+        "south": { "uv": [0, 0, 6, 16],  "texture": "#glass" },
+        "west":  { "uv": [10, 0, 16, 12], "texture": "#glass" },
+        "east":  { "uv": [0, 0, 6, 16],  "texture": "#glass" }
+      }
+    }
+  ]
+}

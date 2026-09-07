@@ -98,6 +98,8 @@ public class ModClient {
     public static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
         event.register(ModelResourceLocation.standalone(TileEntityShakerRenderer.MODEL_LOCATION));
         event.register(ModelResourceLocation.standalone(TileEntityShakerRenderer.GLASS_MODEL_LOCATION));
+        event.register(ModelResourceLocation.standalone(TileEntityHeatSmelterRenderer.BODY_MODEL_LOCATION));
+        event.register(ModelResourceLocation.standalone(TileEntityHeatSmelterRenderer.BODY_ACTIVE_MODEL_LOCATION));
     }
 
     @SubscribeEvent
