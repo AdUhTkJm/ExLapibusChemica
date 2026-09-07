@@ -314,10 +314,14 @@ public class FractionationMultiblockData extends MultiblockData {
         FluidStack current = inputTank.getFluid();
         FractionationRecipe recipe;
         if (current.isEmpty()) {
-            //Passive generation only runs on an empty sump; the (empty) fluid input is ignored by the recipe itself.
+            //Passive generation only runs on an empty sump. Passive recipes take no input, but getRecipeFor short-circuits
+            //empty inputs (returning nothing), so fetch the type's recipes directly and use the first complete one.
             recipe = world.getRecipeManager()
-                  .getRecipeFor(ModRecipeTypes.TYPE_FRACTIONATING_PASSIVE.value(), new SingleFluidRecipeInput(FluidStack.EMPTY), world)
+                  .getAllRecipesFor(ModRecipeTypes.TYPE_FRACTIONATING_PASSIVE.value())
+                  .stream()
+                  .filter(holder -> !holder.value().isIncomplete())
                   .map(RecipeHolder::value)
+                  .findFirst()
                   .orElse(null);
         } else {
             recipe = world.getRecipeManager()
@@ -326,8 +330,7 @@ public class FractionationMultiblockData extends MultiblockData {
                   .orElse(null);
         }
         if (recipe == null || recipe.getMinTemperature() > getTemperature()) {
-            processing = false;
-            return wasProcessing != processing;
+            return wasProcessing != (processing = false);
         }
         //Speed scales linearly from zero ops at min temperature up to nominal speed at base temperature.
         progress += processingRate(recipe);
@@ -405,12 +408,14 @@ public class FractionationMultiblockData extends MultiblockData {
 
     /**
      * Simulates depositing every output first, so an operation never advances (or consumes input) unless the full set of
-     * outputs can be produced.
+     * outputs can be produced. <p>
+     *
+     * However, if the tower does not have enough output tanks, this is allowed. All extra output will be discarded.
      */
     private boolean canDeposit(List<BankOutput> outputs) {
         for (BankOutput output : outputs) {
             if (output.bank() >= banks.size()) {
-                return false;
+                return true;
             }
             if (!banks.get(output.bank()).insert(output.stack().copy(), Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
                 return false;
@@ -424,6 +429,9 @@ public class FractionationMultiblockData extends MultiblockData {
      */
     private void deposit(List<BankOutput> outputs) {
         for (BankOutput output : outputs) {
+            if (output.bank() >= banks.size())
+                return;
+
             banks.get(output.bank()).insert(output.stack().copy(), Action.EXECUTE, AutomationType.INTERNAL);
         }
     }

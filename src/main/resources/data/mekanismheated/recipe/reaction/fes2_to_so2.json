@@ -13,13 +13,13 @@
     }]
   },
   "outputs": {
-    "fluids": [],
+    "fluids": [{
+      "fluid": "mekanismheated:slurry_fe2o3",
+      "amount": 45
+    }],
     "chemicals": [{
       "chemical": "mekanism:sulfur_dioxide",
       "amount": 180
-    }, {
-      "chemical": "mekanismheated:fe2o3_slurry",
-      "amount": 45
     }]
   },
   "min_temperature": 1570,

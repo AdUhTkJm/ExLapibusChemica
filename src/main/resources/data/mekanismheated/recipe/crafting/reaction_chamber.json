@@ -13,7 +13,7 @@
       "item": "mekanism:basic_fluid_tank"
     },
     "I": {
-      "item": "mekanism:infused_alloy"
+      "item": "mekanism:alloy_infused"
     },
     "A": {
       "tag": "c:circuits/advanced"

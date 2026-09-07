@@ -2,11 +2,14 @@ package io.aduhtkjm.mekanismheated.integration.jei;
 
 import io.aduhtkjm.mekanismheated.Mod;
 import io.aduhtkjm.mekanismheated.integration.jei.category.CondenserRecipeCategory;
+import io.aduhtkjm.mekanismheated.integration.jei.category.FractionationRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.HeatedMeltingRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.HeatedSmeltingRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.ReactionChamberRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.ShakerRecipeCategory;
+import io.aduhtkjm.mekanismheated.recipe.FractionationRecipe;
 import io.aduhtkjm.mekanismheated.recipe.ModRecipeTypes;
+import java.util.ArrayList;
 import java.util.List;
 import mekanism.client.recipe_viewer.jei.CatalystRegistryHelper;
 import mekanism.client.recipe_viewer.jei.MekanismJEI;
@@ -48,8 +51,9 @@ public class MekanismHeatedJEI implements IModPlugin {
               new HeatedSmeltingRecipeCategory(guiHelper, ModRecipeViewerTypes.HEATED_SMELTING),
               new HeatedMeltingRecipeCategory(guiHelper, ModRecipeViewerTypes.HEATED_MELTING),
               new ShakerRecipeCategory(guiHelper, ModRecipeViewerTypes.SHAKING),
-              new CondenserRecipeCategory(guiHelper, ModRecipeViewerTypes.CONDENSING),
-              new ReactionChamberRecipeCategory(guiHelper, ModRecipeViewerTypes.REACTION));
+               new CondenserRecipeCategory(guiHelper, ModRecipeViewerTypes.CONDENSING),
+               new ReactionChamberRecipeCategory(guiHelper, ModRecipeViewerTypes.REACTION),
+               new FractionationRecipeCategory(guiHelper, ModRecipeViewerTypes.FRACTIONATING));
     }
 
     @Override
@@ -59,12 +63,15 @@ public class MekanismHeatedJEI implements IModPlugin {
         registerRecipes(registry, ModRecipeViewerTypes.SHAKING, ModRecipeTypes.TYPE_SHAKING);
         registerRecipes(registry, ModRecipeViewerTypes.CONDENSING, ModRecipeTypes.TYPE_CONDENSING);
         registerRecipes(registry, ModRecipeViewerTypes.REACTION, ModRecipeTypes.TYPE_REACTION);
+        //Both fractionation recipe forms share one category, so their recipes are collected separately and merged.
+        registerFractionationRecipes(registry, ModRecipeViewerTypes.FRACTIONATING);
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registry) {
         CatalystRegistryHelper.register(registry, ModRecipeViewerTypes.HEATED_SMELTING, ModRecipeViewerTypes.HEATED_MELTING,
-              ModRecipeViewerTypes.SHAKING, ModRecipeViewerTypes.CONDENSING, ModRecipeViewerTypes.REACTION);
+              ModRecipeViewerTypes.SHAKING, ModRecipeViewerTypes.CONDENSING, ModRecipeViewerTypes.REACTION,
+              ModRecipeViewerTypes.FRACTIONATING);
     }
 
     private static <I extends RecipeInput, RECIPE extends Recipe<I>>
@@ -79,5 +86,32 @@ public class MekanismHeatedJEI implements IModPlugin {
               .filter(holder -> !holder.value().isIncomplete())
               .toList();
         registry.addRecipes(MekanismJEI.holderRecipeType(recipeViewerType), recipes);
+    }
+
+    /**
+     * Registers the fractionation tower's recipes. Unlike the single-type machines, the tower has two recipe forms (input
+     * based and passive) registered under different recipe types but shown in one category, so their recipes are collected
+     * from both types and merged into a single {@code RecipeHolder<FractionationRecipe>} list.
+     */
+    private static void registerFractionationRecipes(IRecipeRegistration registry, IRecipeViewerRecipeType<FractionationRecipe> recipeViewerType) {
+        Level level = Minecraft.getInstance().level;
+        if (level == null) {
+            //No world loaded yet; JEI re-registers recipes once one exists
+            return;
+        }
+        List<RecipeHolder<FractionationRecipe>> recipes = new ArrayList<>();
+        recipes.addAll(collectFractionationRecipes(level, ModRecipeTypes.TYPE_FRACTIONATING));
+        recipes.addAll(collectFractionationRecipes(level, ModRecipeTypes.TYPE_FRACTIONATING_PASSIVE));
+        registry.addRecipes(MekanismJEI.holderRecipeType(recipeViewerType), recipes);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends FractionationRecipe> List<RecipeHolder<FractionationRecipe>> collectFractionationRecipes(Level level,
+          DeferredHolder<RecipeType<?>, RecipeType<T>> type) {
+        //Both fractionation recipe types hold subtypes of FractionationRecipe, so this is safe once generics are erased.
+        return ((List<RecipeHolder<FractionationRecipe>>) (List<?>) level.getRecipeManager().getAllRecipesFor(type.value()))
+              .stream()
+              .filter(holder -> !holder.value().isIncomplete())
+              .toList();
     }
 }

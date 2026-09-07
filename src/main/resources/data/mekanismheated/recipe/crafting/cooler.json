@@ -9,8 +9,8 @@
     "S": {
       "item": "mekanism:steel_casing"
     },
-    "B": {
-      "tag": "c:circuits/basic"
+    "T": {
+      "tag": "c:ingots/tin"
     },
     "R": {
       "tag": "c:dusts/redstone"
