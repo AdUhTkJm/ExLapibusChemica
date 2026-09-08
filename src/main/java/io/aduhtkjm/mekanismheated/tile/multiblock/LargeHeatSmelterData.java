@@ -177,6 +177,7 @@ public class LargeHeatSmelterData extends MultiblockData {
         double temperature = heatCapacitor.getTemperature();
         HeatSmelterRecipe recipe = HeatSmelterLogic.findRecipeFor(world, input, temperature, true);
         double speed = HeatSmelterLogic.speedFactor(temperature);
+        int required = Config.HeatSmelter.BASE_SPEED.get();
         if (recipe == null || speed <= 0 || !canOutput(recipe, input)) {
             if (recipe == null) {
                 //No valid input; discard any accumulated progress
@@ -184,8 +185,16 @@ public class LargeHeatSmelterData extends MultiblockData {
             }
             return wasProcessing != (processing = false);
         }
+        //Pay this tick's share of the recipe's total heat cost; if the capacitor cannot cover it, the smelter stalls and
+        // the recipe idles (without advancing) until enough heat is available again
+        double heatForTick = HeatSmelterLogic.heatForTick(recipe.getHeatConsumed(), required, speed);
+        if (heatForTick > 0 && heatCapacitor.getHeat() < heatForTick) {
+            return wasProcessing != (processing = false);
+        }
         progress += speed;
-        int required = Config.HeatSmelter.BASE_SPEED.get();
+        if (heatForTick > 0) {
+            heatCapacitor.handleHeat(-heatForTick);
+        }
         int performed = 0;
         int maxOperations = (int) (progress / required);
         while (performed < maxOperations && operate(recipe, input)) {

@@ -1,5 +1,6 @@
 package io.aduhtkjm.mekanismheated.recipe;
 
+import io.aduhtkjm.mekanismheated.Config;
 import io.aduhtkjm.mekanismheated.Mod;
 import mekanism.api.annotations.NothingNullByDefault;
 import mekanism.api.heat.ISidedHeatHandler;
@@ -12,6 +13,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * Input: ItemStack
@@ -33,14 +37,36 @@ public abstract class HeatedItemStackToFluidRecipe extends ItemStackToFluidRecip
     protected final double temperatureThreshold;
 
     /**
+     * The recipe's total heat cost over its whole processing, or {@code null} to use the {@link Config.HeatSmelter#HEAT_PER_SMELT}
+     * default. The default is resolved lazily (see {@link #getHeatConsumed()}) so config changes apply without a recipe reload.
+     */
+    @SuppressWarnings("all")
+    protected final Optional<Double> heatConsumption;
+
+    /**
      * @param temperatureThreshold Minimum temperature, in Kelvin, the processing machine must have to process this recipe.
      *                             Must be greater than zero.
      */
     public HeatedItemStackToFluidRecipe(double temperatureThreshold) {
+        this(temperatureThreshold, Optional.empty());
+    }
+
+    /**
+     * @param temperatureThreshold Minimum temperature, in Kelvin, the processing machine must have to process this recipe.
+     *                             Must be greater than zero.
+     * @param heatConsumption     Total heat the recipe consumes over its whole processing, in heat units (Joules); must be
+     *                            greater than zero when present. {@code null} falls back to {@link Config.HeatSmelter#HEAT_PER_SMELT}.
+     */
+    @SuppressWarnings("all") // use optional
+    public HeatedItemStackToFluidRecipe(double temperatureThreshold, Optional<Double> heatConsumption) {
         if (temperatureThreshold <= 0) {
             throw new IllegalArgumentException("Temperature threshold must be greater than zero.");
         }
         this.temperatureThreshold = temperatureThreshold;
+        if (heatConsumption.orElse(0.0D) < 0) {
+            throw new IllegalArgumentException("Heat consumption must be greater than zero.");
+        }
+        this.heatConsumption = heatConsumption;
     }
 
     /**
@@ -48,6 +74,24 @@ public abstract class HeatedItemStackToFluidRecipe extends ItemStackToFluidRecip
      */
     public double getTemperatureThreshold() {
         return temperatureThreshold;
+    }
+
+    /**
+     * Gets the recipe's raw total heat consumption, or {@code null} if it was not specified and the config default applies.
+     * For serializer use.
+     */
+    public Optional<Double> getHeatConsumption() {
+        return heatConsumption;
+    }
+
+    /**
+     * Gets the total heat this recipe consumes over its whole processing, in heat units (Joules). The heat is drawn from
+     * the processing machine's heat capacitor spread proportionally over the recipe's processing ticks (so faster
+     * processing consumes heat faster). Recipes that do not specify their own "heat" cost use
+     * {@link Config.HeatSmelter#HEAT_PER_SMELT}.
+     */
+    public double getHeatConsumed() {
+        return heatConsumption.orElse(Config.HeatSmelter.HEAT_PER_SMELT.get());
     }
 
     /**

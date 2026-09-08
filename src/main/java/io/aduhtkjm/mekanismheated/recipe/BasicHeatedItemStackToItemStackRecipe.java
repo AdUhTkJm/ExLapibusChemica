@@ -3,6 +3,8 @@ package io.aduhtkjm.mekanismheated.recipe;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+
 import mekanism.api.annotations.NothingNullByDefault;
 import mekanism.api.recipes.ingredients.ItemStackIngredient;
 import net.minecraft.core.HolderLookup;
@@ -24,7 +26,21 @@ public class BasicHeatedItemStackToItemStackRecipe extends HeatedItemStackToItem
      *                             Must be greater than zero.
      */
     public BasicHeatedItemStackToItemStackRecipe(ItemStackIngredient input, ItemStack output, double temperatureThreshold) {
-        super(ModRecipeTypes.TYPE_HEATED_SMELTING.value(), temperatureThreshold);
+        this(input, output, temperatureThreshold, Optional.empty());
+    }
+
+    /**
+     * @param input               Input.
+     * @param output              Output.
+     * @param temperatureThreshold Minimum temperature, in Kelvin, the processing machine must have to process this recipe.
+     *                             Must be greater than zero.
+     * @param heatConsumption     Total heat the recipe consumes over its whole processing, in heat units (Joules); must be
+     *                            greater than zero when present. {@code null} falls back to the config default.
+     */
+    @SuppressWarnings("all") // use optional
+    public BasicHeatedItemStackToItemStackRecipe(ItemStackIngredient input, ItemStack output, double temperatureThreshold,
+          Optional<Double> heatConsumption) {
+        super(ModRecipeTypes.TYPE_HEATED_SMELTING.value(), temperatureThreshold, heatConsumption);
         this.input = Objects.requireNonNull(input, "Input cannot be null.");
         Objects.requireNonNull(output, "Output cannot be null.");
         if (output.isEmpty()) {
@@ -49,9 +65,8 @@ public class BasicHeatedItemStackToItemStackRecipe extends HeatedItemStackToItem
         return output.copy();
     }
 
-    @NotNull
     @Override
-    public ItemStack getResultItem(@NotNull HolderLookup.Provider provider) {
+    public ItemStack getResultItem(HolderLookup.Provider provider) {
         return output.copy();
     }
 
@@ -82,7 +97,8 @@ public class BasicHeatedItemStackToItemStackRecipe extends HeatedItemStackToItem
             return false;
         }
         BasicHeatedItemStackToItemStackRecipe other = (BasicHeatedItemStackToItemStackRecipe) o;
-        return Double.compare(temperatureThreshold, other.temperatureThreshold) == 0 && input.equals(other.input) && ItemStack.matches(output, other.output);
+        return Double.compare(temperatureThreshold, other.temperatureThreshold) == 0 && Objects.equals(heatConsumption, other.heatConsumption)
+              && input.equals(other.input) && ItemStack.matches(output, other.output);
     }
 
     @Override
@@ -91,6 +107,7 @@ public class BasicHeatedItemStackToItemStackRecipe extends HeatedItemStackToItem
         result = 31 * result + ItemStack.hashItemAndComponents(output);
         result = 31 * result + output.getCount();
         result = 31 * result + Double.hashCode(temperatureThreshold);
+        result = 31 * result + Objects.hashCode(heatConsumption);
         return result;
     }
 }

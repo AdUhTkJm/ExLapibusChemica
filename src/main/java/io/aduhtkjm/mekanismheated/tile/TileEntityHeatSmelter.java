@@ -434,6 +434,27 @@ public class TileEntityHeatSmelter
     }
 
     /**
+     * Checks whether the smelter's stored heat can pay this tick's share of the recipe's total heat cost. The total cost
+     * is spread proportionally over the recipe's processing ticks (see {@link HeatSmelterLogic#heatForTick}), so slower
+     * (colder) processing pays less per tick. If it cannot be paid, processing stalls: the recipe idles without advancing
+     * until enough heat is available again.
+     */
+    public boolean canProcessHeat(HeatSmelterRecipe recipe) {
+        double needed = HeatSmelterLogic.heatForTick(recipe.getHeatConsumed(), ticksRequired, getSpeedFactor());
+        return needed <= 0 || heatCapacitor.getHeat() >= needed;
+    }
+
+    /**
+     * Draws this tick's share of the given recipe's total heat cost from the heat capacitor, cooling the smelter down.
+     */
+    public void consumeHeat(double totalHeat) {
+        double needed = HeatSmelterLogic.heatForTick(totalHeat, ticksRequired, getSpeedFactor());
+        if (needed > 0) {
+            heatCapacitor.handleHeat(-needed);
+        }
+    }
+
+    /**
      * Number of operations that can be performed this tick, which is zero if the smelter is too cold to process.
      */
     public int getBaselineMaxOperations() {

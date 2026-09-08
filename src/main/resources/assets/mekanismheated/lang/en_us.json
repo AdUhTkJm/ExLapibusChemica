@@ -68,6 +68,7 @@
   "gui.mekanismheated.fractionation.layers": "Output Banks: %1$s",
   "gui.mekanismheated.heat_smelter.buffer": "Buffer: %1$s",
   "gui.mekanismheated.heat_smelter.temperature": "Temp: %1$s",
+  "gui.mekanismheated.heat_consumed": "Heat Consumed: %1$s",
   "gui.mekanismheated.min_temperature": "Minimum Temperature: %1$s",
   "gui.mekanismheated.target_temperature": "Target: %1$s",
   "gui.mekanismheated.temperature_range": "Temperature: %1$s - %2$s",

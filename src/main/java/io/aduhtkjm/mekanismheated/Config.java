@@ -18,6 +18,7 @@ public class Config {
         public static ModConfigSpec.DoubleValue INVERSE_CONDUCTION_COEFFICIENT;
         public static ModConfigSpec.DoubleValue INVERSE_INSULATION_COEFFICIENT;
         public static ModConfigSpec.DoubleValue MAX_FUEL_TEMPERATURE;
+        public static ModConfigSpec.DoubleValue HEAT_PER_SMELT;
     }
 
     public static class Shaker {
@@ -94,6 +95,9 @@ public class Config {
         HeatSmelter.MAX_FUEL_TEMPERATURE = BUILDER
             .comment("Temperature in Kelvin at which the Heat Smelter stops burning fuel. Note the temperature can be raised by, e.g., resistive heaters beyond this point.")
             .defineInRange("maxFuelTemperature", 1_000D, 0D, Double.MAX_VALUE);
+        HeatSmelter.HEAT_PER_SMELT = BUILDER
+            .comment("Total heat consumed by the Heat Smelter per plain smelting recipe (spread over the recipe's processing ticks). Heated smelting and melting recipes can override their heat cost via their recipe's optional \"heat\" field; omitted values fall back to this.")
+            .defineInRange("heatPerSmelt", 120D, 0D, Double.MAX_VALUE);
         BUILDER.pop();
 
         BUILDER.push("shaker");

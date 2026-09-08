@@ -62,6 +62,25 @@ public final class HeatSmelterLogic {
     }
 
     /**
+     * The share of a recipe's total heat cost that one tick of processing draws from the machine's heat capacitor. The
+     * recipe's total heat is spread proportionally over its processing ticks, so the full cost is paid exactly once per
+     * completed recipe regardless of how fast the machine runs: one tick at speed factor {@code s} out of
+     * {@code ticksRequired} ticks pays {@code totalHeat * s / ticksRequired} heat. Slower (colder) processing therefore
+     * consumes less heat per tick, spread over more ticks.
+     *
+     * @param totalHeat     the recipe's total heat consumption, in heat units (Joules).
+     * @param ticksRequired the recipe's processing duration in ticks (at full speed).
+     * @param speedFactor   the machine's current speed factor (0 to 1).
+     * @return the heat to draw for this tick, in heat units (0 when not processing).
+     */
+    public static double heatForTick(double totalHeat, int ticksRequired, double speedFactor) {
+        if (totalHeat <= 0 || ticksRequired <= 0 || speedFactor <= 0) {
+            return 0;
+        }
+        return totalHeat * speedFactor / ticksRequired;
+    }
+
+    /**
      * Speed multiplier based on the given temperature. Runs linearly from zero at {@link Config.HeatSmelter#BASE_TEMPERATURE}
      * up to one at {@link Config.HeatSmelter#FULL_SPEED_TEMPERATURE}, clamped to a minimum of zero.
      */

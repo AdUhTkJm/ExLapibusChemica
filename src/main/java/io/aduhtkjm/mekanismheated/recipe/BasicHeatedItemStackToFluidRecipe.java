@@ -2,6 +2,8 @@ package io.aduhtkjm.mekanismheated.recipe;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+
 import mekanism.api.annotations.NothingNullByDefault;
 import mekanism.api.recipes.ingredients.FluidStackIngredient;
 import mekanism.api.recipes.ingredients.ItemStackIngredient;
@@ -11,6 +13,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid.Flowing;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
 @NothingNullByDefault
 public class BasicHeatedItemStackToFluidRecipe extends HeatedItemStackToFluidRecipe {
@@ -25,7 +28,21 @@ public class BasicHeatedItemStackToFluidRecipe extends HeatedItemStackToFluidRec
      *                             Must be greater than zero.
      */
     public BasicHeatedItemStackToFluidRecipe(ItemStackIngredient input, FluidStackIngredient output, double temperatureThreshold) {
-        super(temperatureThreshold);
+        this(input, output, temperatureThreshold, Optional.empty());
+    }
+
+    /**
+     * @param input               Input.
+     * @param output              Output.
+     * @param temperatureThreshold Minimum temperature, in Kelvin, the processing machine must have to process this recipe.
+     *                             Must be greater than zero.
+     * @param heatConsumption     Total heat the recipe consumes over its whole processing, in heat units (Joules); must be
+     *                            greater than zero when present. {@code null} falls back to the config default.
+     */
+    @SuppressWarnings("all")
+    public BasicHeatedItemStackToFluidRecipe(ItemStackIngredient input, FluidStackIngredient output, double temperatureThreshold,
+          Optional<Double> heatConsumption) {
+        super(temperatureThreshold, heatConsumption);
         this.input = Objects.requireNonNull(input, "Input cannot be null.");
         this.output = Objects.requireNonNull(output, "Output cannot be null.");
     }
@@ -82,7 +99,8 @@ public class BasicHeatedItemStackToFluidRecipe extends HeatedItemStackToFluidRec
             return false;
         }
         BasicHeatedItemStackToFluidRecipe other = (BasicHeatedItemStackToFluidRecipe) o;
-        return Double.compare(temperatureThreshold, other.temperatureThreshold) == 0 && input.equals(other.input) && output.equals(other.output);
+        return Double.compare(temperatureThreshold, other.temperatureThreshold) == 0 && Objects.equals(heatConsumption, other.heatConsumption)
+              && input.equals(other.input) && output.equals(other.output);
     }
 
     @Override
@@ -90,6 +108,7 @@ public class BasicHeatedItemStackToFluidRecipe extends HeatedItemStackToFluidRec
         int result = input.hashCode();
         result = 31 * result + output.hashCode();
         result = 31 * result + Double.hashCode(temperatureThreshold);
+        result = 31 * result + Objects.hashCode(heatConsumption);
         return result;
     }
 }

@@ -28,8 +28,18 @@ public class HeatSmelterRecipeCacheLookupMonitor
             // own temperature threshold. Returning zero operations (rather than marking a RecipeError) just idles the
             // recipe for the tick, so it resumes automatically once the smelter is hot enough again. The
             // temperature-dependent processing speed itself is handled by HeatSensitiveOneInputCachedRecipe
-            cachedRecipe.setBaselineMaxOperations(() ->
-                  recipe.canProcess(heatSmelter) ? heatSmelter.getBaselineMaxOperations() : 0);
+            cachedRecipe.setBaselineMaxOperations(() -> {
+                if (!recipe.canProcess(heatSmelter)) {
+                    return 0;
+                }
+                int maxOperations = heatSmelter.getBaselineMaxOperations();
+                if (maxOperations == 0) {
+                    return 0;
+                }
+                //Same idea for heat cost: a recipe whose per-tick heat share cannot be paid from the capacitor's stored
+                // heat idles until enough heat is available again
+                return heatSmelter.canProcessHeat(recipe) ? maxOperations : 0;
+            });
         }
         return cachedRecipe;
     }

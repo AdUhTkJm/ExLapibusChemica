@@ -83,12 +83,14 @@ public class ModRecipeSerializers {
                 RecordCodecBuilder.mapCodec(instance -> instance.group(
                       ItemStackIngredient.CODEC.fieldOf(SerializationConstants.INPUT).forGetter(BasicHeatedItemStackToItemStackRecipe::getInput),
                       ItemStack.CODEC.fieldOf(SerializationConstants.OUTPUT).forGetter(BasicHeatedItemStackToItemStackRecipe::getOutputRaw),
-                      TEMPERATURE_THRESHOLD_CODEC.fieldOf("temperature").forGetter(HeatedItemStackToItemStackRecipe::getTemperatureThreshold)
+                      TEMPERATURE_THRESHOLD_CODEC.fieldOf("temperature").forGetter(HeatedItemStackToItemStackRecipe::getTemperatureThreshold),
+                      TEMPERATURE_THRESHOLD_CODEC.optionalFieldOf("heat").forGetter(HeatedItemStackToItemStackRecipe::getHeatConsumption)
                 ).apply(instance, BasicHeatedItemStackToItemStackRecipe::new)),
                 StreamCodec.composite(
                       ItemStackIngredient.STREAM_CODEC, BasicHeatedItemStackToItemStackRecipe::getInput,
                       ItemStack.STREAM_CODEC, BasicHeatedItemStackToItemStackRecipe::getOutputRaw,
                       ByteBufCodecs.DOUBLE, HeatedItemStackToItemStackRecipe::getTemperatureThreshold,
+                      ByteBufCodecs.optional(ByteBufCodecs.DOUBLE), HeatedItemStackToItemStackRecipe::getHeatConsumption,
                       BasicHeatedItemStackToItemStackRecipe::new
                 )));
 
@@ -97,12 +99,14 @@ public class ModRecipeSerializers {
                 RecordCodecBuilder.mapCodec(instance -> instance.group(
                       ItemStackIngredient.CODEC.fieldOf(SerializationConstants.INPUT).forGetter(BasicHeatedItemStackToFluidRecipe::getInput),
                       FluidStackIngredient.CODEC.fieldOf(SerializationConstants.OUTPUT).forGetter(BasicHeatedItemStackToFluidRecipe::getOutputRaw),
-                      TEMPERATURE_THRESHOLD_CODEC.fieldOf("temperature").forGetter(HeatedItemStackToFluidRecipe::getTemperatureThreshold)
+                      TEMPERATURE_THRESHOLD_CODEC.fieldOf("temperature").forGetter(HeatedItemStackToFluidRecipe::getTemperatureThreshold),
+                      TEMPERATURE_THRESHOLD_CODEC.optionalFieldOf("heat").forGetter(HeatedItemStackToFluidRecipe::getHeatConsumption)
                 ).apply(instance, BasicHeatedItemStackToFluidRecipe::new)),
                 StreamCodec.composite(
                       ItemStackIngredient.STREAM_CODEC, BasicHeatedItemStackToFluidRecipe::getInput,
                       FluidStackIngredient.STREAM_CODEC, BasicHeatedItemStackToFluidRecipe::getOutputRaw,
                       ByteBufCodecs.DOUBLE, HeatedItemStackToFluidRecipe::getTemperatureThreshold,
+                      ByteBufCodecs.optional(ByteBufCodecs.DOUBLE), HeatedItemStackToFluidRecipe::getHeatConsumption,
                       BasicHeatedItemStackToFluidRecipe::new
                 )));
 
@@ -184,7 +188,7 @@ public class ModRecipeSerializers {
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<BasicReactionChamberRecipe>> REACTION =
           RECIPE_SERIALIZERS.register("reaction", () -> new MekanismRecipeSerializer<>(
-                RecordCodecBuilder.<BasicReactionChamberRecipe>mapCodec(instance -> instance.group(
+                RecordCodecBuilder.mapCodec(instance -> instance.group(
                       ReactionIngredientGroup.CODEC.fieldOf("inputs")
                             .forGetter(recipe -> new ReactionIngredientGroup(recipe.getItemInput(), recipe.getFluidInputs(), recipe.getChemicalInputs())),
                       ReactionIngredientGroup.CODEC.fieldOf("outputs")

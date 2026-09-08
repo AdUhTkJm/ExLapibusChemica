@@ -1,5 +1,6 @@
 package io.aduhtkjm.mekanismheated.recipe;
 
+import io.aduhtkjm.mekanismheated.Config;
 import mekanism.api.heat.ISidedHeatHandler;
 import mekanism.api.recipes.ItemStackToItemStackRecipe;
 import mekanism.api.recipes.ingredients.ItemStackIngredient;
@@ -80,6 +81,19 @@ public class HeatSmelterRecipe
         if (isMelt())
             return getMelt().canProcess(machine);
         return true;
+    }
+
+    /**
+     * Gets the total heat this recipe consumes over its whole processing, in heat units (Joules). The heated variants use
+     * their recipe's "heat" cost (falling back to the config default when unset); plain smelting always uses the config
+     * default.
+     */
+    public double getHeatConsumed() {
+        if (isOversmelt())
+            return getOversmelt().getHeatConsumed();
+        if (isMelt())
+            return getMelt().getHeatConsumed();
+        return Config.HeatSmelter.HEAT_PER_SMELT.get();
     }
 
     public ItemStackIngredient getInput() {

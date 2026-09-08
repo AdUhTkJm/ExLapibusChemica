@@ -39,8 +39,10 @@ import org.jetbrains.annotations.NotNull;
  *     recipe's progress gets reset (for example because the input no longer produces the output).</li>
  * </ul>
  * <p>
- * Whether the smelter is hot enough to process a given recipe at all (its temperature threshold) is <strong>not</strong>
- * handled here; it is enforced by the caller through {@link CachedRecipe#setBaselineMaxOperations}.
+ * Whether the smelter is hot enough to process a given recipe at all (its temperature threshold), and whether its stored
+ * heat can pay the recipe's per-tick heat share, is <strong>not</strong> handled here; it is enforced by the caller
+ * through {@link CachedRecipe#setBaselineMaxOperations}. The heat itself is drawn each processed tick in
+ * {@link #useResources} / {@link #finishProcessing}, spreading the recipe's total cost over its processing duration.
  *
  * @param <OUTPUT> Type of the recipe's output (an {@link ItemStack} or a {@link FluidStack}).
  */
@@ -113,6 +115,8 @@ public class HeatSensitiveOneInputCachedRecipe<OUTPUT>
     @Override
     protected void useResources(int operations) {
         madeProgress = true;
+        //Pay this tick's share of the recipe's total heat cost (each processed tick draws heat, cooling the smelter)
+        smelter.consumeHeat(recipe.getHeatConsumed());
         super.useResources(operations);
     }
 
@@ -120,6 +124,8 @@ public class HeatSensitiveOneInputCachedRecipe<OUTPUT>
     protected void finishProcessing(int operations) {
         madeProgress = true;
         finishedThisTick = true;
+        //Pay this tick's share of the recipe's total heat cost (the finishing tick is processed like any other)
+        smelter.consumeHeat(recipe.getHeatConsumed());
         //Carry any leftover fractional progress over to the next recipe so no progress is lost on completion
         progress -= smelter.getTicksRequired();
         super.finishProcessing(operations);

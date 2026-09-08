@@ -12,6 +12,7 @@ import mekanism.client.recipe_viewer.type.IRecipeViewerRecipeType;
 import mekanism.common.inventory.container.slot.SlotOverlay;
 import mekanism.common.util.MekanismUtils;
 import mekanism.common.util.UnitDisplayUtils.TemperatureUnit;
+import mekanism.common.util.text.EnergyDisplay;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import net.minecraft.world.item.crafting.Recipe;
@@ -40,5 +41,16 @@ abstract class AbstractHeatSmelterRecipeCategory<RECIPE extends Recipe<?>> exten
     protected void addTemperatureTooltip(IRecipeSlotBuilder slotBuilder, double temperatureThreshold) {
         slotBuilder.addRichTooltipCallback((slotView, tooltip) -> tooltip.add(ModLang.MIN_TEMPERATURE.translate(
               MekanismUtils.getTemperatureDisplay(temperatureThreshold, TemperatureUnit.KELVIN, true))));
+    }
+
+    /**
+     * Notes on the input that the smelter consumes the given amount of heat (in heat units, displayed as energy) over the
+     * recipe's whole processing.
+     */
+    protected void addHeatTooltip(IRecipeSlotBuilder slotBuilder, double heatConsumed) {
+        if (heatConsumed > 0) {
+            slotBuilder.addRichTooltipCallback((slotView, tooltip) -> tooltip.add(ModLang.HEAT_CONSUMED.translate(
+                  EnergyDisplay.of((long) heatConsumed))));
+        }
     }
 }

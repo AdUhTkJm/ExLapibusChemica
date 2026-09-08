@@ -7,6 +7,7 @@ import mekanism.client.gui.element.gauge.GuiGauge;
 import mekanism.client.recipe_viewer.type.IRecipeViewerRecipeType;
 import mekanism.common.tile.component.config.DataType;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
@@ -27,8 +28,9 @@ public class HeatedMeltingRecipeCategory extends AbstractHeatSmelterRecipeCatego
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<HeatedItemStackToFluidRecipe> recipeHolder, IFocusGroup focusGroup) {
         HeatedItemStackToFluidRecipe recipe = recipeHolder.value();
-        addTemperatureTooltip(initItem(builder, RecipeIngredientRole.INPUT, input, recipe.getInput().getRepresentations()),
-              recipe.getTemperatureThreshold());
+        IRecipeSlotBuilder inputSlot = initItem(builder, RecipeIngredientRole.INPUT, input, recipe.getInput().getRepresentations());
+        addTemperatureTooltip(inputSlot, recipe.getTemperatureThreshold());
+        addHeatTooltip(inputSlot, recipe.getHeatConsumed());
         initFluid(builder, RecipeIngredientRole.OUTPUT, outputTank, recipe.getOutputDefinition());
     }
 }
