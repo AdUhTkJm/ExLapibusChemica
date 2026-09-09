@@ -32,6 +32,7 @@ public class ModItems {
         output.accept(ModBlocks.THERMAL_FRACTIONATION_CASING);
         output.accept(ModBlocks.DISTILLATION_TRAY);
         output.accept(ModBlocks.CREATIVE_HEAT_BLOCK);
+        output.accept(ModBlocks.CREATIVE_CHUNK_HEATER);
         output.accept(ModBlocks.COOLER);
         output.accept(ModBlocks.CONDENSER);
         output.accept(ModBlocks.REACTION_CHAMBER);

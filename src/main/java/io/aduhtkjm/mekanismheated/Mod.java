@@ -5,6 +5,7 @@ import io.aduhtkjm.mekanismheated.command.ChunkTemperatureCommand;
 import io.aduhtkjm.mekanismheated.content.fusedpipe.FusedPipeRegistry;
 import io.aduhtkjm.mekanismheated.content.moltenfluid.MoltenFluidHandler;
 import io.aduhtkjm.mekanismheated.network.PacketCoolerSetEnergy;
+import io.aduhtkjm.mekanismheated.network.PacketSetChunkTargetTemperature;
 import io.aduhtkjm.mekanismheated.network.PacketSetHeatTarget;
 import io.aduhtkjm.mekanismheated.recipe.ModRecipeSerializers;
 import io.aduhtkjm.mekanismheated.recipe.ModRecipeTypes;
@@ -97,6 +98,7 @@ public class Mod {
     private void registerPayloadHandlers(final RegisterPayloadHandlersEvent event) {
         event.registrar(MODID)
               .playToServer(PacketSetHeatTarget.TYPE, PacketSetHeatTarget.STREAM_CODEC, PacketSetHeatTarget::handle)
+              .playToServer(PacketSetChunkTargetTemperature.TYPE, PacketSetChunkTargetTemperature.STREAM_CODEC, PacketSetChunkTargetTemperature::handle)
               .playToServer(PacketCoolerSetEnergy.TYPE, PacketCoolerSetEnergy.STREAM_CODEC, PacketCoolerSetEnergy::handle);
     }
 

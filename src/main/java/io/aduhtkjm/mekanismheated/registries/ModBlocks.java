@@ -6,6 +6,7 @@ import io.aduhtkjm.mekanismheated.ModLang;
 import io.aduhtkjm.mekanismheated.block.BlockFusedPipe;
 import io.aduhtkjm.mekanismheated.block.condenser.CondenserBlock;
 import io.aduhtkjm.mekanismheated.block.cooler.CoolerBlock;
+import io.aduhtkjm.mekanismheated.block.creative.CreativeChunkHeaterBlock;
 import io.aduhtkjm.mekanismheated.block.creative.CreativeHeatBlock;
 import io.aduhtkjm.mekanismheated.block.fractionation.DistillationTrayBlock;
 import io.aduhtkjm.mekanismheated.block.heatsmelter.HeatSmelterBlock;
@@ -16,6 +17,7 @@ import io.aduhtkjm.mekanismheated.item.ItemBlockFusedPipe;
 import io.aduhtkjm.mekanismheated.content.fusedpipe.FusedPipeConfig;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCondenser;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCooler;
+import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeChunkHeater;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeHeatBlock;
 import io.aduhtkjm.mekanismheated.tile.TileEntityShaker;
 import io.aduhtkjm.mekanismheated.tile.TileEntityHeatSmelter;
@@ -124,6 +126,15 @@ public class ModBlocks {
 
     public static final BlockRegistryObject<CreativeHeatBlock, BlockItem> CREATIVE_HEAT_BLOCK =
           BLOCKS.register("creative_heat_block", () -> new CreativeHeatBlock(CREATIVE_HEAT_BLOCK_TYPE, BlockBehaviour.Properties.of().mapColor(MapColor.METAL)));
+
+    public static final Machine<TileEntityCreativeChunkHeater> CREATIVE_CHUNK_HEATER_TYPE = MachineBuilder
+          .createMachine(() -> ModTileEntityTypes.CREATIVE_CHUNK_HEATER, ModLang.DESCRIPTION_CREATIVE_CHUNK_HEATER)
+          .withGui(() -> ModContainerTypes.CREATIVE_CHUNK_HEATER)
+          .without(AttributeUpgradeSupport.class)
+          .build();
+
+    public static final BlockRegistryObject<CreativeChunkHeaterBlock, BlockItem> CREATIVE_CHUNK_HEATER =
+          BLOCKS.register("creative_chunk_heater", () -> new CreativeChunkHeaterBlock(CREATIVE_CHUNK_HEATER_TYPE, BlockBehaviour.Properties.of().mapColor(MapColor.METAL)));
 
     public static final Machine<TileEntityCooler> COOLER_TYPE = MachineBuilder
           .createMachine(() -> ModTileEntityTypes.COOLER, ModLang.DESCRIPTION_COOLER)

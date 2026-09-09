@@ -3,6 +3,7 @@ package io.aduhtkjm.mekanismheated.registries;
 import io.aduhtkjm.mekanismheated.Mod;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCondenser;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCooler;
+import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeChunkHeater;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeHeatBlock;
 import io.aduhtkjm.mekanismheated.tile.TileEntityShaker;
 import io.aduhtkjm.mekanismheated.tile.TileEntityHeatSmelter;
@@ -70,6 +71,11 @@ public class ModTileEntityTypes {
 
     public static final TileEntityTypeRegistryObject<TileEntityCreativeHeatBlock> CREATIVE_HEAT_BLOCK = TILE_ENTITY_TYPES
           .mekBuilder(ModBlocks.CREATIVE_HEAT_BLOCK, TileEntityCreativeHeatBlock::new)
+          .serverTicker(TileEntityMekanism::tickServer)
+          .build();
+
+    public static final TileEntityTypeRegistryObject<TileEntityCreativeChunkHeater> CREATIVE_CHUNK_HEATER = TILE_ENTITY_TYPES
+          .mekBuilder(ModBlocks.CREATIVE_CHUNK_HEATER, TileEntityCreativeChunkHeater::new)
           .serverTicker(TileEntityMekanism::tickServer)
           .build();
 
