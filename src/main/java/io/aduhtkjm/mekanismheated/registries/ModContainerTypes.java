@@ -1,6 +1,7 @@
 package io.aduhtkjm.mekanismheated.registries;
 
 import io.aduhtkjm.mekanismheated.Mod;
+import io.aduhtkjm.mekanismheated.tile.TileEntityAtmosphereHeater;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCondenser;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCooler;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeChunkHeater;
@@ -44,4 +45,7 @@ public class ModContainerTypes {
 
     public static final ContainerTypeRegistryObject<MekanismTileContainer<TileEntityReactionChamber>> REACTION_CHAMBER =
           CONTAINER_TYPES.register(ModBlocks.REACTION_CHAMBER, TileEntityReactionChamber.class);
+
+    public static final ContainerTypeRegistryObject<MekanismTileContainer<TileEntityAtmosphereHeater>> ATMOSPHERE_HEATER =
+          CONTAINER_TYPES.register(ModBlocks.ATMOSPHERE_HEATER, TileEntityAtmosphereHeater.class);
 }

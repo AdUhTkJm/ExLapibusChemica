@@ -1,6 +1,7 @@
 package io.aduhtkjm.mekanismheated.integration.jei;
 
 import io.aduhtkjm.mekanismheated.Mod;
+import io.aduhtkjm.mekanismheated.recipe.AtmosphereFuelRecipe;
 import io.aduhtkjm.mekanismheated.recipe.CondenserRecipe;
 import io.aduhtkjm.mekanismheated.recipe.FractionationRecipe;
 import io.aduhtkjm.mekanismheated.recipe.HeatedItemStackToFluidRecipe;
@@ -25,6 +26,8 @@ public final class ModRecipeViewerTypes {
           new ModRecipeViewerType<>(Mod.rl("condensing"), ModBlocks.CONDENSER, -6, -10, 164, 62);
     public static final ModRecipeViewerType<ReactionChamberRecipe> REACTION =
           new ModRecipeViewerType<>(Mod.rl("reaction"), ModBlocks.REACTION_CHAMBER, -2, -12, 164, 72);
+    public static final ModRecipeViewerType<AtmosphereFuelRecipe> ATMOSPHERE_FUEL =
+          new ModRecipeViewerType<>(Mod.rl("atmosphere_fuel"), ModBlocks.ATMOSPHERE_HEATER, -6, -10, 164, 72);
     //Taller than the single-row machines: the fractionation tower stacks its output banks vertically.
     public static final ModRecipeViewerType<FractionationRecipe> FRACTIONATING =
           new ModRecipeViewerType<>(Mod.rl("fractionating"), ModBlocks.THERMAL_FRACTIONATION_CONTROLLER, -2, -12, 164, 96);

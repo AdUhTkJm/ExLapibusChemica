@@ -172,6 +172,7 @@ public class ModBlocks {
 
     public static final Machine<TileEntityAtmosphereHeater> ATMOSPHERE_HEATER_TYPE = MachineBuilder
           .createMachine(() -> ModTileEntityTypes.ATMOSPHERE_HEATER, ModLang.DESCRIPTION_ATMOSPHERE_HEATER)
+          .withGui(() -> ModContainerTypes.ATMOSPHERE_HEATER)
           .withEnergyConfig(
                 //Energy config values are in FE/RF; the energy container works in Mekanism Joules, so convert with Mekanism's FE conversion rate.
                 () -> Math.round(Config.AtmosphereHeater.ENERGY_PER_TICK.get() * MekanismConfig.general.forgeConversionRate.get()),

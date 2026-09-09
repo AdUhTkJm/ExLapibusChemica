@@ -1,12 +1,12 @@
 {
   "parent": "mekanism:block/machine",
   "textures": {
-    "sides": "mekanism:block/fuelwood_heater/right",
-    "front": "mekanism:block/fuelwood_heater/front",
-    "west": "mekanism:block/fuelwood_heater/right",
-    "east": "mekanism:block/fuelwood_heater/left",
-    "south": "mekanism:block/fuelwood_heater/back",
-    "up": "mekanism:block/fuelwood_heater/top",
-    "down": "mekanism:block/fuelwood_heater/bottom"
+    "sides": "mekanismheated:block/atmosphere_heater/right",
+    "front": "mekanismheated:block/atmosphere_heater/front",
+    "west": "mekanismheated:block/atmosphere_heater/right",
+    "east": "mekanismheated:block/atmosphere_heater/left",
+    "south": "mekanismheated:block/atmosphere_heater/back",
+    "up": "mekanismheated:block/atmosphere_heater/top",
+    "down": "mekanismheated:block/atmosphere_heater/bottom"
   }
 }

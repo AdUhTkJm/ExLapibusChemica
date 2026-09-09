@@ -1,6 +1,7 @@
 package io.aduhtkjm.mekanismheated.integration.jei;
 
 import io.aduhtkjm.mekanismheated.Mod;
+import io.aduhtkjm.mekanismheated.integration.jei.category.AtmosphereFuelRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.CondenserRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.FractionationRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.HeatedMeltingRecipeCategory;
@@ -53,6 +54,7 @@ public class MekanismHeatedJEI implements IModPlugin {
               new ShakerRecipeCategory(guiHelper, ModRecipeViewerTypes.SHAKING),
                new CondenserRecipeCategory(guiHelper, ModRecipeViewerTypes.CONDENSING),
                new ReactionChamberRecipeCategory(guiHelper, ModRecipeViewerTypes.REACTION),
+               new AtmosphereFuelRecipeCategory(guiHelper, ModRecipeViewerTypes.ATMOSPHERE_FUEL),
                new FractionationRecipeCategory(guiHelper, ModRecipeViewerTypes.FRACTIONATING));
     }
 
@@ -63,6 +65,7 @@ public class MekanismHeatedJEI implements IModPlugin {
         registerRecipes(registry, ModRecipeViewerTypes.SHAKING, ModRecipeTypes.TYPE_SHAKING);
         registerRecipes(registry, ModRecipeViewerTypes.CONDENSING, ModRecipeTypes.TYPE_CONDENSING);
         registerRecipes(registry, ModRecipeViewerTypes.REACTION, ModRecipeTypes.TYPE_REACTION);
+        registerRecipes(registry, ModRecipeViewerTypes.ATMOSPHERE_FUEL, ModRecipeTypes.TYPE_ATMOSPHERE_FUEL);
         //Both fractionation recipe forms share one category, so their recipes are collected separately and merged.
         registerFractionationRecipes(registry, ModRecipeViewerTypes.FRACTIONATING);
     }
@@ -71,7 +74,7 @@ public class MekanismHeatedJEI implements IModPlugin {
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registry) {
         CatalystRegistryHelper.register(registry, ModRecipeViewerTypes.HEATED_SMELTING, ModRecipeViewerTypes.HEATED_MELTING,
               ModRecipeViewerTypes.SHAKING, ModRecipeViewerTypes.CONDENSING, ModRecipeViewerTypes.REACTION,
-              ModRecipeViewerTypes.FRACTIONATING);
+              ModRecipeViewerTypes.ATMOSPHERE_FUEL, ModRecipeViewerTypes.FRACTIONATING);
     }
 
     private static <I extends RecipeInput, RECIPE extends Recipe<I>>
