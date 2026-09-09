@@ -81,6 +81,31 @@ public final class HeatSmelterLogic {
     }
 
     /**
+     * The number of recipe operations a large heat smelter performs per completed processing cycle: one per member
+     * block of the structure, limited by the input items actually available (and, by the caller, by output space).
+     */
+    public static int parallelOperations(int smelterCount, int inputCount) {
+        return Math.min(Math.max(smelterCount, 0), Math.max(inputCount, 0));
+    }
+
+    /**
+     * The heat multiplier applied when a large heat smelter processes {@code operations} recipes at once: the batch's
+     * total heat cost scales with the square root of the operation count (e.g. 8 parallel operations cost
+     * {@code sqrt(8)}x one operation's heat, 64 operations cost {@code 8}x), so batching is more heat-efficient than
+     * running the equivalent number of separate smelters. The multiplier is capped at
+     * {@link Config.HeatSmelter#MAX_HEAT_MULTIPLIER} ({@code sqrt(64) = 8} by default) so very large structures do
+     * not keep paying more heat.
+     *
+     * @param operations the number of recipe operations performed in parallel this cycle (1 or fewer means no scaling).
+     */
+    public static double heatMultiplier(int operations) {
+        if (operations <= 1) {
+            return 1.0D;
+        }
+        return Math.min(Math.sqrt(operations), Config.HeatSmelter.MAX_HEAT_MULTIPLIER.get());
+    }
+
+    /**
      * Speed multiplier based on the given temperature. Runs linearly from zero at {@link Config.HeatSmelter#BASE_TEMPERATURE}
      * up to one at {@link Config.HeatSmelter#FULL_SPEED_TEMPERATURE}, clamped to a minimum of zero.
      */

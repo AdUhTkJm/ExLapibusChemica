@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import mekanism.common.lib.math.voxel.VoxelCuboid;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -30,6 +31,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.AABB;
@@ -85,7 +87,9 @@ public class TileEntityHeatSmelterRenderer implements BlockEntityRenderer<TileEn
             if (multiblock.isFormed()) {
                 VoxelCuboid bounds = multiblock.getBounds();
                 if (bounds != null) {
-                    return bounds.asAABB();
+                    //Inflate slightly so floating point drift in the frustum planes cannot cull the BER when it is
+                    // exactly on screen
+                    return bounds.asAABB().inflate(0.5D);
                 }
             }
         }
@@ -97,6 +101,7 @@ public class TileEntityHeatSmelterRenderer implements BlockEntityRenderer<TileEn
           MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState blockState = blockEntity.getBlockState();
         BakedModel model = isActive(blockState) ? this.bodyActiveModel : this.bodyModel;
+        int light = renderLight(blockEntity, packedLight);
 
         poseStack.pushPose();
         if (blockEntity.getMultiblock().isFormed()) {
@@ -104,9 +109,32 @@ public class TileEntityHeatSmelterRenderer implements BlockEntityRenderer<TileEn
         } else {
             applyFacingTransform(poseStack, blockState);
         }
-        renderBody(model, blockState, poseStack, bufferSource, packedLight, packedOverlay);
-        renderFluids(blockEntity, blockState, poseStack, bufferSource, packedLight, packedOverlay);
+        renderBody(model, blockState, poseStack, bufferSource, light, packedOverlay);
+        renderFluids(blockEntity, blockState, poseStack, bufferSource, light, packedOverlay);
         poseStack.popPose();
+    }
+
+    /**
+     * The light used to shade the rendered body. While formed, the body spans the entire structure, but the light
+     * passed in is sampled at the master's own block position, which lies inside the solid structure and can be fully
+     * occluded (making the whole render pitch dark). Sample the light just above the top face instead, where the
+     * structure is exposed, so the cuboid is lit like its visible surface.
+     */
+    private static int renderLight(TileEntityHeatSmelter blockEntity, int packedLight) {
+        LargeHeatSmelterData multiblock = blockEntity.getMultiblock();
+        Level level = blockEntity.getLevel();
+        if (!multiblock.isFormed() || level == null) {
+            return packedLight;
+        }
+        VoxelCuboid bounds = multiblock.getBounds();
+        if (bounds == null) {
+            return packedLight;
+        }
+        BlockPos topCenter = BlockPos.containing(
+              bounds.getMinPos().getX() + bounds.length() / 2.0D,
+              bounds.getMaxPos().getY() + 1.0D,
+              bounds.getMinPos().getZ() + bounds.width() / 2.0D);
+        return LevelRenderer.getLightColor(level, topCenter);
     }
 
     private void renderFluids(TileEntityHeatSmelter blockEntity, BlockState blockState, PoseStack poseStack,
@@ -176,7 +204,12 @@ public class TileEntityHeatSmelterRenderer implements BlockEntityRenderer<TileEn
         BlockPos masterPos = tile.getBlockPos();
         BlockPos minPos = multiblock.getMinPos();
         poseStack.translate(minPos.getX() - masterPos.getX(), minPos.getY() - masterPos.getY(), minPos.getZ() - masterPos.getZ());
-        poseStack.scale(multiblock.width(), multiblock.height(), multiblock.length());
+        //Scale each model axis by the matching world extent of the structure: length() is the X extent, height() the Y
+        // extent and width() the Z extent (see VoxelCuboid). The scale acts on world axes because the pose composes as
+        // translate ∘ scale ∘ rotate (the facing rotation is applied to the model before the scale), so swapping
+        // width/length here would transpose the rendered cuboid for any structure with a non-square footprint,
+        // leaving one edge strip of the real structure unrendered and drawing a ghost slab on the opposite side.
+        poseStack.scale(multiblock.length(), multiblock.height(), multiblock.width());
         poseStack.translate(0.5D, 0.5D, 0.5D);
         poseStack.mulPose(Axis.YP.rotationDegrees(getFacingRotation(blockState.getValue(HeatSmelterBlock.FACING))));
         poseStack.translate(-0.5D, -0.5D, -0.5D);

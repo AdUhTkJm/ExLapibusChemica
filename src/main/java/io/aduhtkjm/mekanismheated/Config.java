@@ -19,6 +19,7 @@ public class Config {
         public static ModConfigSpec.DoubleValue INVERSE_INSULATION_COEFFICIENT;
         public static ModConfigSpec.DoubleValue MAX_FUEL_TEMPERATURE;
         public static ModConfigSpec.DoubleValue HEAT_PER_SMELT;
+        public static ModConfigSpec.DoubleValue MAX_HEAT_MULTIPLIER;
     }
 
     public static class Shaker {
@@ -98,6 +99,9 @@ public class Config {
         HeatSmelter.HEAT_PER_SMELT = BUILDER
             .comment("Total heat consumed by the Heat Smelter per plain smelting recipe (spread over the recipe's processing ticks). Heated smelting and melting recipes can override their heat cost via their recipe's optional \"heat\" field; omitted values fall back to this.")
             .defineInRange("heatPerSmelt", 120D, 0D, Double.MAX_VALUE);
+        HeatSmelter.MAX_HEAT_MULTIPLIER = BUILDER
+            .comment("Cap on the large heat smelter's parallel processing heat multiplier. A batch of operations costs sqrt(operationCount)x one operation's heat (e.g. 8 operations cost sqrt(8)x, 64 operations cost 8x), making a large smelter more heat-efficient than the equivalent number of separate smelters. This caps the multiplier: 8 corresponds to sqrt(64), so structures larger than 64 blocks stop paying more heat while still processing everything at once.")
+            .defineInRange("maxHeatMultiplier", 8D, 1D, Double.MAX_VALUE);
         BUILDER.pop();
 
         BUILDER.push("shaker");

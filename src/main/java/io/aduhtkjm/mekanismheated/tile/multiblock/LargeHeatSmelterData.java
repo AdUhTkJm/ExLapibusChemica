@@ -35,6 +35,12 @@ import org.jetbrains.annotations.Nullable;
  * {@code HeatSmelterRecipeCacheLookupMonitor}, this data replicates that processing in a self-contained loop using
  * {@link HeatSmelterLogic} rather than the {@code RecipeCacheLookupMonitor}. The single-block and multiblock paths
  * therefore share identical math.</p>
+ *
+ * <p>While formed, the smelter processes recipes in parallel: each completed cycle performs one recipe operation per
+ * member block of the structure at once (limited by available input items and output space), producing that many
+ * times the output in the same time a single smelter would take. The batch's total heat cost scales with the square
+ * root of the operation count (capped at {@link Config.HeatSmelter#MAX_HEAT_MULTIPLIER}), so a large smelter is more
+ * heat-efficient than the equivalent number of separate smelters.</p>
  */
 public class LargeHeatSmelterData extends MultiblockData {
 
@@ -180,16 +186,27 @@ public class LargeHeatSmelterData extends MultiblockData {
         HeatSmelterRecipe recipe = HeatSmelterLogic.findRecipeFor(world, input, temperature, true);
         double speed = HeatSmelterLogic.speedFactor(temperature);
         int required = Config.HeatSmelter.BASE_SPEED.get();
-        if (recipe == null || speed <= 0 || !canOutput(recipe, input)) {
+        if (recipe == null || speed <= 0) {
             if (recipe == null) {
                 //No valid input; discard any accumulated progress
                 progress = 0;
             }
             return wasProcessing != (processing = false);
         }
-        //Pay this tick's share of the recipe's total heat cost; if the capacitor cannot cover it, the smelter stalls and
-        // the recipe idles (without advancing) until enough heat is available again
-        double heatForTick = HeatSmelterLogic.heatForTick(recipe.getHeatConsumed(), required, speed);
+        //The large smelter performs one recipe operation per member block at once (so a volume-N structure processes
+        // N items per cycle, N times the output of a single smelter in the same time), limited by the input items
+        // actually available and by the output space. The batch's heat cost scales with the square root of the
+        // operation count (capped), making it more heat-efficient than the equivalent number of separate smelters
+        int operations = Math.min(HeatSmelterLogic.parallelOperations(getVolume(), input.getCount()),
+              maxOutputOperations(recipe, input));
+        if (operations <= 0) {
+            return wasProcessing != (processing = false);
+        }
+        //Pay this tick's share of the recipe's total heat cost (scaled by the parallel heat multiplier); if the
+        // capacitor cannot cover it, the smelter stalls and the recipe idles (without advancing) until enough heat
+        // is available again
+        double heatForTick = HeatSmelterLogic.heatForTick(
+              recipe.getHeatConsumed() * HeatSmelterLogic.heatMultiplier(operations), required, speed);
         if (heatForTick > 0 && heatCapacitor.getHeat() < heatForTick) {
             return wasProcessing != (processing = false);
         }
@@ -198,8 +215,8 @@ public class LargeHeatSmelterData extends MultiblockData {
             heatCapacitor.handleHeat(-heatForTick);
         }
         int performed = 0;
-        int maxOperations = (int) (progress / required);
-        while (performed < maxOperations && operate(recipe, input)) {
+        int maxCycles = (int) (progress / required);
+        while (performed < maxCycles && operate(recipe, input, operations)) {
             performed++;
             progress -= required;
         }
@@ -207,28 +224,57 @@ public class LargeHeatSmelterData extends MultiblockData {
         return wasProcessing != processing;
     }
 
-    private boolean canOutput(HeatSmelterRecipe recipe, ItemStack input) {
-        if (input.isEmpty()) {
-            return false;
-        }
+    /**
+     * The number of recipe operations the output containers can currently accept, given each operation's output size.
+     * Used to shrink the batch (and with it the heat cost) when the output side is running low on room.
+     */
+    private int maxOutputOperations(HeatSmelterRecipe recipe, ItemStack input) {
         if (recipe.isItemOutput()) {
-            return outputSlot.insertItem(recipe.getItemOutput(input), Action.SIMULATE, AutomationType.INTERNAL).isEmpty();
+            ItemStack perOperation = recipe.getItemOutput(input);
+            int perOperationCount = perOperation.getCount();
+            if (perOperationCount <= 0) {
+                return 0;
+            }
+            ItemStack probe = perOperation.copyWithCount(perOperation.getMaxStackSize());
+            ItemStack remainder = outputSlot.insertItem(probe, Action.SIMULATE, AutomationType.INTERNAL);
+            int free = probe.getCount() - remainder.getCount();
+            return free / perOperationCount;
         }
-        return fluidTank.insert(recipe.getFluidOutput(input), Action.SIMULATE, AutomationType.INTERNAL).isEmpty();
+        FluidStack perOperation = recipe.getFluidOutput(input);
+        if (perOperation.isEmpty() || perOperation.getAmount() <= 0) {
+            return 0;
+        }
+        FluidStack probe = perOperation.copyWithAmount(Integer.MAX_VALUE);
+        FluidStack remainder = fluidTank.insert(probe, Action.SIMULATE, AutomationType.INTERNAL);
+        long free = (long) Integer.MAX_VALUE - remainder.getAmount();
+        return (int) Math.min(Integer.MAX_VALUE, free / perOperation.getAmount());
     }
 
-    private boolean operate(HeatSmelterRecipe recipe, ItemStack input) {
+    private boolean operate(HeatSmelterRecipe recipe, ItemStack input, int operations) {
         if (input.isEmpty() || !recipe.test(input)) {
             return false;
         }
-        if (!canOutput(recipe, input)) {
+        //Never process more than the input slot actually holds (e.g. near the end of the input stack)
+        int count = Math.min(operations, input.getCount());
+        if (count <= 0) {
             return false;
         }
-        inputSlot.extractItem(1, Action.EXECUTE, AutomationType.INTERNAL);
         if (recipe.isItemOutput()) {
-            outputSlot.insertItem(recipe.getItemOutput(input), Action.EXECUTE, AutomationType.INTERNAL);
+            ItemStack perOperation = recipe.getItemOutput(input);
+            ItemStack output = perOperation.copyWithCount(perOperation.getCount() * count);
+            if (!outputSlot.insertItem(output, Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+                return false;
+            }
+            inputSlot.extractItem(count, Action.EXECUTE, AutomationType.INTERNAL);
+            outputSlot.insertItem(output, Action.EXECUTE, AutomationType.INTERNAL);
         } else {
-            fluidTank.insert(recipe.getFluidOutput(input), Action.EXECUTE, AutomationType.INTERNAL);
+            FluidStack perOperation = recipe.getFluidOutput(input);
+            FluidStack output = perOperation.copyWithAmount(perOperation.getAmount() * count);
+            if (!fluidTank.insert(output, Action.SIMULATE, AutomationType.INTERNAL).isEmpty()) {
+                return false;
+            }
+            inputSlot.extractItem(count, Action.EXECUTE, AutomationType.INTERNAL);
+            fluidTank.insert(output, Action.EXECUTE, AutomationType.INTERNAL);
         }
         return true;
     }
