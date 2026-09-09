@@ -52,10 +52,6 @@ public class TileEntityCreativeChunkHeater extends TileEntityMekanism {
     private void applyChunkTemperature(ServerLevel serverLevel) {
         double currentDelta = ChunkAmbientTemperature.getDelta(serverLevel, worldPosition);
         if (targetTemperature <= 0) {
-            // Target 0 K means "off"; clear the delta we applied (if any)
-            if (currentDelta != 0) {
-                clearAppliedDelta(serverLevel);
-            }
             chunkAmbientTemperature = biomeAmbient(serverLevel, currentDelta);
             return;
         }
@@ -69,25 +65,6 @@ public class TileEntityCreativeChunkHeater extends TileEntityMekanism {
 
     private double biomeAmbient(ServerLevel serverLevel, double currentDelta) {
         return HeatAPI.getAmbientTemp(serverLevel, worldPosition) - currentDelta;
-    }
-
-    /**
-     * Resets the chunk delta on removal, but only if it is still the value we last applied, so we do not stomp
-     * over a sibling heater or a manually set value (e.g. via {@code /mekheatedtemp}).
-     */
-    private void clearAppliedDelta(ServerLevel serverLevel) {
-        if (lastAppliedDelta != 0 && Double.compare(ChunkAmbientTemperature.getDelta(serverLevel, worldPosition), lastAppliedDelta) == 0) {
-            ChunkAmbientTemperature.setDelta(serverLevel, new ChunkPos(worldPosition), 0);
-        }
-        lastAppliedDelta = 0;
-    }
-
-    @Override
-    public void blockRemoved() {
-        super.blockRemoved();
-        if (level instanceof ServerLevel serverLevel) {
-            clearAppliedDelta(serverLevel);
-        }
     }
 
     public void setTargetTemperature(double temperature) {

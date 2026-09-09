@@ -69,6 +69,17 @@ public class Config {
         public static ModConfigSpec.DoubleValue INVERSE_INSULATION_COEFFICIENT;
     }
 
+    public static class AtmosphereHeater {
+        public static ModConfigSpec.IntValue WORK_INTERVAL;
+        public static ModConfigSpec.LongValue ENERGY_PER_TICK;
+        public static ModConfigSpec.LongValue MAX_ENERGY;
+        public static ModConfigSpec.DoubleValue BASE_TEMP_RISE;
+        public static ModConfigSpec.DoubleValue TEMPERATURE_SCALE;
+        public static ModConfigSpec.DoubleValue CENTER_EFFECT;
+        public static ModConfigSpec.DoubleValue OUTER_EFFECT;
+        public static ModConfigSpec.IntValue CHUNK_RADIUS;
+    }
+
     public static ModConfigSpec SPEC;
     static {
         BUILDER.push("heatSmelter");
@@ -208,6 +219,33 @@ public class Config {
         ReactionChamber.INVERSE_INSULATION_COEFFICIENT = BUILDER
             .comment("Inverse insulation coefficient of the reaction chamber, controlling how readily it loses heat to the environment (smaller means slower). Must be at least one.")
             .defineInRange("inverseInsulationCoefficient", 5D, 1D, Double.MAX_VALUE);
+        BUILDER.pop();
+
+        BUILDER.push("atmosphereHeater");
+        AtmosphereHeater.WORK_INTERVAL = BUILDER
+            .comment("How often (in game ticks) the atmosphere heater performs a work cycle: it consumes fuel and energy and then warms the surrounding chunks.")
+            .defineInRange("workInterval", 40, 1, Integer.MAX_VALUE);
+        AtmosphereHeater.ENERGY_PER_TICK = BUILDER
+            .comment("Base energy consumed per tick of a work cycle, in FE/RF per tick (converted to Mekanism Joules with Mekanism's FE conversion rate). Fuel inputs subtract from this per work cycle; the consumption never goes below zero, and any fuel reducing it beyond zero is still consumed in full.")
+            .defineInRange("energyPerTick", 5_000, 0, Long.MAX_VALUE);
+        AtmosphereHeater.MAX_ENERGY = BUILDER
+            .comment("Maximum amount of energy the atmosphere heater can hold, in FE/RF.")
+            .defineInRange("maxEnergy", 1_000_000, 0, Long.MAX_VALUE);
+        AtmosphereHeater.BASE_TEMP_RISE = BUILDER
+            .comment("Ambient temperature rise in Kelvin per work cycle at 0 K ambient, following dT = baseTempRise / 2^(T / temperatureScale) where T is the current effective ambient temperature in Kelvin.")
+            .defineInRange("baseTempRise", 5D, 0D, Double.MAX_VALUE);
+        AtmosphereHeater.TEMPERATURE_SCALE = BUILDER
+            .comment("Temperature scale (Kelvin) in the denominator of the heater's dT formula: larger values make the temperature rise fall off more slowly as the ambient temperature climbs. Must be greater than zero.")
+            .defineInRange("temperatureScale", 1_000D, 1.0E-9D, Double.MAX_VALUE);
+        AtmosphereHeater.CENTER_EFFECT = BUILDER
+            .comment("Fraction of the temperature rise applied to the chunk containing the machine (1.0 = 100%).")
+            .defineInRange("centerEffect", 1.0D, 0D, 1D);
+        AtmosphereHeater.OUTER_EFFECT = BUILDER
+            .comment("Fraction of the temperature rise applied to each chunk surrounding the machine's chunk (0.5 = 50%).")
+            .defineInRange("outerEffect", 0.5D, 0D, 1D);
+        AtmosphereHeater.CHUNK_RADIUS = BUILDER
+            .comment("Radius in chunks around the machine's own chunk that receive the outer effect. 1 corresponds to a 3x3 chunk area.")
+            .defineInRange("chunkRadius", 1, 0, 32);
         BUILDER.pop();
         SPEC = BUILDER.build();
     }

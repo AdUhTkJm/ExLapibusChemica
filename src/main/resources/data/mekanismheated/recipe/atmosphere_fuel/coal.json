@@ -1,0 +1,8 @@
+{
+  "type": "mekanismheated:atmosphere_fuel",
+  "input": {
+    "item": "minecraft:coal",
+    "count": 1
+  },
+  "reduction": 100
+}

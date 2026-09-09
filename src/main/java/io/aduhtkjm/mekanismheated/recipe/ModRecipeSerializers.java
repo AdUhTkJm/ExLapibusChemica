@@ -214,6 +214,20 @@ public class ModRecipeSerializers {
                       )
                 )));
 
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<BasicAtmosphereFuelRecipe>> ATMOSPHERE_FUEL =
+          RECIPE_SERIALIZERS.register("atmosphere_fuel", () -> new MekanismRecipeSerializer<>(
+                RecordCodecBuilder.mapCodec(instance -> instance.group(
+                      ItemStackIngredient.CODEC.optionalFieldOf(SerializationConstants.INPUT).forGetter(BasicAtmosphereFuelRecipe::getItemInput),
+                      ChemicalStackIngredient.CODEC.optionalFieldOf("gas_input").forGetter(BasicAtmosphereFuelRecipe::getChemicalInput),
+                      SerializerHelper.POSITIVE_NONZERO_LONG_CODEC.fieldOf("reduction").forGetter(BasicAtmosphereFuelRecipe::getReduction)
+                ).apply(instance, BasicAtmosphereFuelRecipe::new)),
+                StreamCodec.composite(
+                      ByteBufCodecs.optional(ItemStackIngredient.STREAM_CODEC), BasicAtmosphereFuelRecipe::getItemInput,
+                      ByteBufCodecs.optional(ChemicalStackIngredient.STREAM_CODEC), BasicAtmosphereFuelRecipe::getChemicalInput,
+                      ByteBufCodecs.VAR_LONG, BasicAtmosphereFuelRecipe::getReduction,
+                      BasicAtmosphereFuelRecipe::new
+                )));
+
     /**
      * The shape of the {@code "inputs"} / {@code "outputs"} objects in a reaction recipe: an optional single item plus lists of
      * fluids and chemicals. The item is "at most one" while the fluid and chemical lists may hold any number (including none).

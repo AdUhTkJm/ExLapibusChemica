@@ -1,6 +1,7 @@
 package io.aduhtkjm.mekanismheated.registries;
 
 import io.aduhtkjm.mekanismheated.Mod;
+import io.aduhtkjm.mekanismheated.tile.TileEntityAtmosphereHeater;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCondenser;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCooler;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeChunkHeater;
@@ -93,6 +94,13 @@ public class ModTileEntityTypes {
 
     public static final TileEntityTypeRegistryObject<TileEntityReactionChamber> REACTION_CHAMBER = TILE_ENTITY_TYPES
           .mekBuilder(ModBlocks.REACTION_CHAMBER, TileEntityReactionChamber::new)
+          .clientTicker(TileEntityMekanism::tickClient)
+          .serverTicker(TileEntityMekanism::tickServer)
+          .withSimple(Capabilities.CONFIG_CARD)
+          .build();
+
+    public static final TileEntityTypeRegistryObject<TileEntityAtmosphereHeater> ATMOSPHERE_HEATER = TILE_ENTITY_TYPES
+          .mekBuilder(ModBlocks.ATMOSPHERE_HEATER, TileEntityAtmosphereHeater::new)
           .clientTicker(TileEntityMekanism::tickClient)
           .serverTicker(TileEntityMekanism::tickServer)
           .withSimple(Capabilities.CONFIG_CARD)

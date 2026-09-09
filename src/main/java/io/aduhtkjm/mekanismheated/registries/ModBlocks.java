@@ -4,6 +4,7 @@ import io.aduhtkjm.mekanismheated.Config;
 import io.aduhtkjm.mekanismheated.Mod;
 import io.aduhtkjm.mekanismheated.ModLang;
 import io.aduhtkjm.mekanismheated.block.BlockFusedPipe;
+import io.aduhtkjm.mekanismheated.block.atmosphereheater.AtmosphereHeaterBlock;
 import io.aduhtkjm.mekanismheated.block.condenser.CondenserBlock;
 import io.aduhtkjm.mekanismheated.block.cooler.CoolerBlock;
 import io.aduhtkjm.mekanismheated.block.creative.CreativeChunkHeaterBlock;
@@ -15,6 +16,7 @@ import io.aduhtkjm.mekanismheated.block.shaker.ShakerBlock;
 import io.aduhtkjm.mekanismheated.item.ItemBlockCooler;
 import io.aduhtkjm.mekanismheated.item.ItemBlockFusedPipe;
 import io.aduhtkjm.mekanismheated.content.fusedpipe.FusedPipeConfig;
+import io.aduhtkjm.mekanismheated.tile.TileEntityAtmosphereHeater;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCondenser;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCooler;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeChunkHeater;
@@ -31,6 +33,7 @@ import mekanism.common.block.attribute.AttributeUpgradeSupport;
 import mekanism.common.block.attribute.Attributes;
 import mekanism.common.block.attribute.Attributes.AttributeCustomResistance;
 import mekanism.common.block.prefab.BlockBasicMultiblock;
+import mekanism.common.config.MekanismConfig;
 import mekanism.common.content.blocktype.Machine;
 import mekanism.common.content.blocktype.Machine.MachineBuilder;
 import mekanism.common.content.blocktype.BlockTypeTile;
@@ -166,4 +169,17 @@ public class ModBlocks {
     public static final BlockRegistryObject<ReactionChamberBlock, ItemBlockTooltip<ReactionChamberBlock>> REACTION_CHAMBER =
           BLOCKS.register("reaction_chamber", () -> new ReactionChamberBlock(REACTION_CHAMBER_TYPE, BlockBehaviour.Properties.of().mapColor(MapColor.METAL)),
                 (block, properties) -> new ItemBlockTooltip<>(block, true, properties));
+
+    public static final Machine<TileEntityAtmosphereHeater> ATMOSPHERE_HEATER_TYPE = MachineBuilder
+          .createMachine(() -> ModTileEntityTypes.ATMOSPHERE_HEATER, ModLang.DESCRIPTION_ATMOSPHERE_HEATER)
+          .withEnergyConfig(
+                //Energy config values are in FE/RF; the energy container works in Mekanism Joules, so convert with Mekanism's FE conversion rate.
+                () -> Math.round(Config.AtmosphereHeater.ENERGY_PER_TICK.get() * MekanismConfig.general.forgeConversionRate.get()),
+                () -> Math.round(Config.AtmosphereHeater.MAX_ENERGY.get() * MekanismConfig.general.forgeConversionRate.get()))
+          .with(AttributeSideConfig.create(TransmissionType.ITEM, TransmissionType.CHEMICAL, TransmissionType.ENERGY))
+          .without(AttributeUpgradeSupport.class)
+          .build();
+
+    public static final BlockRegistryObject<AtmosphereHeaterBlock, BlockItem> ATMOSPHERE_HEATER =
+          BLOCKS.register("atmosphere_heater", () -> new AtmosphereHeaterBlock(ATMOSPHERE_HEATER_TYPE, BlockBehaviour.Properties.of().mapColor(MapColor.METAL)));
 }

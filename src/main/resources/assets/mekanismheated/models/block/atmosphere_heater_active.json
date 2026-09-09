@@ -1,0 +1,11 @@
+{
+  "parent": "mekanismheated:block/atmosphere_heater",
+  "textures": {
+    "front": "mekanismheated:block/atmosphere_heater/front_active",
+    "west": "mekanismheated:block/atmosphere_heater/right_active",
+    "east": "mekanismheated:block/atmosphere_heater/left_active",
+    "south": "mekanismheated:block/atmosphere_heater/back_active",
+    "up": "mekanismheated:block/atmosphere_heater/top_active",
+    "down": "mekanismheated:block/atmosphere_heater/bottom_active"
+  }
+}

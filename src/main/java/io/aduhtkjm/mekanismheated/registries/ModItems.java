@@ -36,6 +36,7 @@ public class ModItems {
         output.accept(ModBlocks.COOLER);
         output.accept(ModBlocks.CONDENSER);
         output.accept(ModBlocks.REACTION_CHAMBER);
+        output.accept(ModBlocks.ATMOSPHERE_HEATER);
 
         output.accept(ModItems.SPONGE_IRON_INGOT.get());
         output.accept(ModItems.IMPURE_SN_INGOT.get());
