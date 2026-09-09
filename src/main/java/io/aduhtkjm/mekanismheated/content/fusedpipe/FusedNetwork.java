@@ -10,6 +10,7 @@ import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 
 import io.aduhtkjm.mekanismheated.Config;
+import io.aduhtkjm.mekanismheated.content.ambient.ChunkAmbientTemperature;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
@@ -93,6 +94,10 @@ public class FusedNetwork {
     public final FusedAcceptorCache acceptorCache = new FusedAcceptorCache();
     private long lastSavedTime = -1;
     private int tickCounter;
+    //Network-average ambient temperature (biome + per-chunk delta), refreshed when the topology changes or
+    //when any chunk's delta changed (signalled by the global version counter in ChunkAmbientTemperature).
+    private double cachedAmbientTemperature = HeatAPI.AMBIENT_TEMP;
+    private long ambientTemperatureVersion = Long.MIN_VALUE;
 
     public FusedNetwork(UUID uuid) {
         this.uuid = uuid;
@@ -110,7 +115,7 @@ public class FusedNetwork {
         chemicalTanksView = Collections.singletonList(chemicalTank);
         heatCapacitor = VariableHeatCapacitor.create(0,
               this::getTotalHeatConduction, this::getTotalHeatInsulation,
-              () -> (double) HeatAPI.AMBIENT_TEMP, dirtyListener);
+              this::getCachedAmbientTemperature, dirtyListener);
         heatCapacitorsView = Collections.singletonList(heatCapacitor);
     }
 
@@ -136,6 +141,7 @@ public class FusedNetwork {
             node.setNetwork(this);
             acceptorCache.invalidate();
             itemCapacityDirty = true;
+            ambientTemperatureVersion = Long.MIN_VALUE;
             //First node: try to restore from saved data
             if (nodes.size() == 1) {
                 Level level = node.getLevel();
@@ -183,6 +189,7 @@ public class FusedNetwork {
         nodes.remove(node);
         acceptorCache.invalidate();
         itemCapacityDirty = true;
+        ambientTemperatureVersion = Long.MIN_VALUE;
         updateHeatCapacity();
     }
 
@@ -216,6 +223,7 @@ public class FusedNetwork {
         other.nodes.clear();
         acceptorCache.invalidate();
         itemCapacityDirty = true;
+        ambientTemperatureVersion = Long.MIN_VALUE;
         long theirEnergy = other.getEnergy();
         if (theirEnergy > 0L) {
             energyContainer.setEnergy(MathUtils.addClamped(energyContainer.getEnergy(), theirEnergy));
@@ -845,6 +853,7 @@ public class FusedNetwork {
         if (totalCapacity <= 0) {
             return;
         }
+        refreshAmbientTemperature();
         double myTemp = heatCapacitor.getTemperature();
         //Scale transfers by the simulation interval to preserve the average per-tick rate.
         double scale = HEAT_INTERVAL;
@@ -871,7 +880,7 @@ public class FusedNetwork {
         }
 
         //Environment loss: 6 sides to air
-        double ambientTemp = HeatAPI.AMBIENT_TEMP;
+        double ambientTemp = cachedAmbientTemperature;
         double invConductionEnv = HeatAPI.AIR_INVERSE_COEFFICIENT + heatCapacitor.getInverseInsulation() + heatCapacitor.getInverseConduction();
         double tempToTransferEnv = (myTemp - ambientTemp) / invConductionEnv;
         double heatToTransferEnv = tempToTransferEnv * totalCapacity * scale;
@@ -879,6 +888,39 @@ public class FusedNetwork {
 
         //Phase 2: commit
         heatCapacitor.update();
+    }
+
+    /**
+     * Cached supplier of the network-average ambient temperature for the heat capacitor.
+     */
+    private double getCachedAmbientTemperature() {
+        return cachedAmbientTemperature;
+    }
+
+    /**
+     * Recomputes the network-average ambient temperature (biome + per-chunk delta) whenever the topology
+     * changed or any chunk's delta changed anywhere (the global version counter advanced). Averages over all
+     * nodes, mirroring how the network acts as a single heat object spread across its chunks.
+     */
+    private void refreshAmbientTemperature() {
+        long version = ChunkAmbientTemperature.getVersion();
+        if (version == ambientTemperatureVersion) {
+            return;
+        }
+        ambientTemperatureVersion = version;
+        double sum = 0;
+        int count = 0;
+        for (FusedPipeNode node : nodes) {
+            Level level = node.getLevel();
+            if (level == null) {
+                continue;
+            }
+            sum += HeatAPI.getAmbientTemp(level, node.getBlockPos());
+            count++;
+        }
+        if (count > 0) {
+            cachedAmbientTemperature = sum / count;
+        }
     }
 
     //Energy

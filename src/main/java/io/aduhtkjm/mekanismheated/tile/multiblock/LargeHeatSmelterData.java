@@ -55,7 +55,9 @@ public class LargeHeatSmelterData extends MultiblockData {
 
     public LargeHeatSmelterData(BlockEntity tile) {
         super(tile);
-        biomeAmbientTemp = HeatAPI.AMBIENT_TEMP;
+        //Fall back to the ambient temperature at the controller position; recalculated for the whole structure
+        //in {@link #onCreated} (including any per-chunk ambient temperature delta).
+        biomeAmbientTemp = HeatAPI.getAmbientTemp(tile.getLevel(), tile.getBlockPos());
         IContentsListener listener = createSaveAndComparator();
         //Use the same GUI positions as the standalone smelter so the reused GUI lays out identically
         inputSlot = BasicInventorySlot.at(ConstantPredicates.alwaysTrue(), listener, 64, 17);

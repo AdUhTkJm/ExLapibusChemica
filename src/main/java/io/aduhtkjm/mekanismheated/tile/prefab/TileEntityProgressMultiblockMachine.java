@@ -82,6 +82,14 @@ public abstract class TileEntityProgressMultiblockMachine<T extends MultiblockDa
     private boolean prevStructure;
 
     /**
+     * Client-side copy of the previous tick's formed state, used to detect the formed -> unformed transition so GUIs
+     * are only force-closed when a structure breaks, never while a machine is legitimately running standalone.
+     * ({@link #prevStructure} cannot be reused for this: on the client it is overwritten by {@link #handleUpdateTag}
+     * before the unformed state would be observed here.)
+     */
+    private boolean clientPrevFormed;
+
+    /**
      * Whether this multiblock segment is rendering the structure.
      */
     private boolean isMaster;
@@ -118,9 +126,12 @@ public abstract class TileEntityProgressMultiblockMachine<T extends MultiblockDa
     @Override
     protected void onUpdateClient() {
         super.onUpdateClient();
-        if (!getMultiblock().isFormed()) {
+        boolean formed = getMultiblock().isFormed();
+        if (!formed) {
             unformedTicks++;
-            if (!playersUsing.isEmpty()) {
+            //Only close the GUI when a previously formed structure just broke. A standalone machine is legitimately
+            // unformed, and closing on every unformed tick would instantly close its GUI right after opening it.
+            if (clientPrevFormed && !playersUsing.isEmpty()) {
                 for (Player player : new HashSet<>(playersUsing)) {
                     player.closeContainer();
                 }
@@ -128,6 +139,7 @@ public abstract class TileEntityProgressMultiblockMachine<T extends MultiblockDa
         } else {
             unformedTicks = 0;
         }
+        clientPrevFormed = formed;
     }
 
     /**
@@ -173,10 +185,12 @@ public abstract class TileEntityProgressMultiblockMachine<T extends MultiblockDa
                 }
             }
         } else {
-            if (!playersUsing.isEmpty()) {
-                playersUsing.forEach(Player::closeContainer);
-            }
+            //Only close the GUI when a previously formed structure just broke. A standalone machine is legitimately
+            // unformed, and closing on every unformed tick would instantly close its GUI right after opening it.
             if (prevStructure) {
+                if (!playersUsing.isEmpty()) {
+                    playersUsing.forEach(Player::closeContainer);
+                }
                 structureChanged(multiblock);
                 prevStructure = false;
                 needsPacket = true;

@@ -93,7 +93,9 @@ public class FractionationMultiblockData extends MultiblockData {
 
     public FractionationMultiblockData(BlockEntity tile) {
         super(tile);
-        biomeAmbientTemp = HeatAPI.AMBIENT_TEMP;
+        //Fall back to the ambient temperature at the controller position; recalculated for the whole structure
+        //in {@link #onCreated} (including any per-chunk ambient temperature delta).
+        biomeAmbientTemp = HeatAPI.getAmbientTemp(tile.getLevel(), tile.getBlockPos());
         inputTank = VariableCapacityFluidTank.input(this, this::getSumpCapacity, ConstantPredicates.alwaysTrue(), createSaveAndComparator(this));
         //Note: The capacitor must also be registered in the heat capacitors list, otherwise the multiblock exposes
         // no heat handler at all and neither the valves nor internal conduction see any temperature integration

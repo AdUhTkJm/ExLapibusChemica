@@ -1,6 +1,7 @@
 package io.aduhtkjm.mekanismheated;
 
 import com.mojang.logging.LogUtils;
+import io.aduhtkjm.mekanismheated.command.ChunkTemperatureCommand;
 import io.aduhtkjm.mekanismheated.content.fusedpipe.FusedPipeRegistry;
 import io.aduhtkjm.mekanismheated.content.moltenfluid.MoltenFluidHandler;
 import io.aduhtkjm.mekanismheated.network.PacketCoolerSetEnergy;
@@ -69,6 +70,7 @@ public class Mod {
         NeoForge.EVENT_BUS.addListener(FusedPipeRegistry::onServerTickPost);
         NeoForge.EVENT_BUS.addListener(FusedPipeRegistry::onServerStopping);
         NeoForge.EVENT_BUS.addListener(MoltenFluidHandler::onEntityTickPost);
+        NeoForge.EVENT_BUS.addListener(ChunkTemperatureCommand::onRegisterCommands);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
