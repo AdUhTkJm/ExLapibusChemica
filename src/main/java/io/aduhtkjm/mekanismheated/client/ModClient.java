@@ -51,15 +51,17 @@ public class ModClient {
         //Unstable lava is registered outside of ModFluids.FLUIDS, so its bucket is coloured by hand.
         event.register(new DynamicFluidContainerModel.Colors(), ModFluids.UNSTABLE_LAVA_BUCKET.get());
 
-        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? CuoDustItem.TINT : -1, ModItems.CUO_DUST);
-        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? Fe2O3DustItem.TINT : -1, ModItems.FE2O3_DUST);
-        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? SnO2DustItem.TINT : -1, ModItems.SNO2_DUST);
-        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? CaCO3DustItem.TINT : -1, ModItems.CACO3_DUST);
-        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? PureFe2O3DustItem.TINT : -1, ModItems.PURE_FE2O3_DUST);
-        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? FeS2DustItem.TINT : -1, ModItems.FES2_DUST);
+        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemCuODust.TINT : -1, ModItems.CUO_DUST);
+        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemFe2O3Dust.TINT : -1, ModItems.FE2O3_DUST);
+        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemSnO2Dust.TINT : -1, ModItems.SNO2_DUST);
+        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemCaCO3Dust.TINT : -1, ModItems.CACO3_DUST);
+        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemPureFe2O3Dust.TINT : -1, ModItems.PURE_FE2O3_DUST);
+        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemFeS2Dust.TINT : -1, ModItems.FES2_DUST);
+        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemCu2SDust.TINT : -1, ModItems.CU2S_DUST);
+        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemPureCuODust.TINT : -1, ModItems.PURE_CUO_DUST);
 
-        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ImpureSnIngotItem.TINT : -1, ModItems.IMPURE_SN_INGOT);
-        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? SpongeIronIngotItem.TINT : -1, ModItems.SPONGE_IRON_INGOT);
+        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemImpureSnIngot.TINT : -1, ModItems.IMPURE_SN_INGOT);
+        ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemSpongeIronIngot.TINT : -1, ModItems.SPONGE_IRON_INGOT);
     }
 
     @SubscribeEvent

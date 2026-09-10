@@ -10,11 +10,11 @@ import org.lwjgl.system.NonnullDefault;
 import java.util.List;
 
 @NonnullDefault
-public class Fe2O3DustItem extends Item {
+public class ItemFe2O3Dust extends Item {
     public static final int TINT = 0xFF972020;
     private static final Component TOOLTIP = Component.literal("Fe₂O₃").withStyle(ChatFormatting.GOLD);
 
-    public Fe2O3DustItem(Properties properties) {
+    public ItemFe2O3Dust(Properties properties) {
         super(properties);
     }
 

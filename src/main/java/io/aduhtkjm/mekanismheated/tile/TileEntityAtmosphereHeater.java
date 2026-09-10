@@ -207,10 +207,8 @@ public class TileEntityAtmosphereHeater extends TileEntityConfigurableMachine {
                 if (needed <= 0 || item.getCount() < needed) {
                     break;
                 }
-                //The whole stack is consumed, even if its reduction exceeds the base energy cost.
-                reduction += (item.getCount() / (double) needed) * recipe.getReduction();
-                int toConsume = item.getCount();
-                fuelConsumers.add(() -> inputSlot.shrinkStack(toConsume, Action.EXECUTE));
+                reduction += recipe.getReduction();
+                fuelConsumers.add(() -> inputSlot.shrinkStack((int) needed, Action.EXECUTE));
                 break;
             }
         }
@@ -226,9 +224,8 @@ public class TileEntityAtmosphereHeater extends TileEntityConfigurableMachine {
                 if (needed <= 0 || available < needed) {
                     break;
                 }
-                //The whole tank content is consumed, even if its reduction exceeds the base energy cost.
-                reduction += (available / (double) needed) * recipe.getReduction();
-                fuelConsumers.add(() -> gasTank.extract(available, Action.EXECUTE, AutomationType.INTERNAL));
+                reduction += recipe.getReduction();
+                fuelConsumers.add(() -> gasTank.extract(needed, Action.EXECUTE, AutomationType.INTERNAL));
                 break;
             }
         }

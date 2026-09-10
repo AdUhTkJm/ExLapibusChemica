@@ -1,0 +1,28 @@
+{
+  "type": "mekanismheated:reaction",
+  "comment": "Cu2S (90) + 3 O2 (135) = SO2 (90) + 4 CuO (180)",
+  "inputs": {
+    "item": {
+      "item": "mekanismheated:cu2s_dust",
+      "count": 1
+    },
+    "fluids": [],
+    "chemicals": [{
+      "chemical": "mekanism:oxygen",
+      "amount": 135
+    }]
+  },
+  "outputs": {
+    "item": {
+      "item": "mekanismheated:cuo_dust",
+      "count": 2
+    },
+    "fluids": [],
+    "chemicals": [{
+      "chemical": "mekanism:sulfur_dioxide",
+      "amount": 90
+    }]
+  },
+  "min_temperature": 1080,
+  "max_temperature": 4000
+}

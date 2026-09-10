@@ -10,11 +10,13 @@ import org.lwjgl.system.NonnullDefault;
 import java.util.List;
 
 @NonnullDefault
-public class SnO2DustItem extends Item {
-    public static final int TINT = 0xFFF7EDCA;
-    private static final Component TOOLTIP = Component.literal("SnO₂").withStyle(ChatFormatting.GOLD);
+public class ItemCu2SDust extends Item {
+    public static final int TINT = 0xFF3D3B36;
 
-    public SnO2DustItem(Properties properties) {
+    private static final Component TOOLTIP = Component.literal("Cu₂S")
+          .withStyle(ChatFormatting.GOLD);
+
+    public ItemCu2SDust(Properties properties) {
         super(properties);
     }
 

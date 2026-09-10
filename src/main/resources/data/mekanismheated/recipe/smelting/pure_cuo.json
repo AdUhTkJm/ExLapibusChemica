@@ -4,10 +4,10 @@
   "cookingtime": 200,
   "experience": 0.7,
   "ingredient": {
-    "item": "mekanismheated:pure_fe2o3_dust"
+    "item": "mekanismheated:pure_cuo_dust"
   },
   "result": {
-    "id": "mekanismheated:sponge_iron_ingot",
+    "id": "minecraft:copper_ingot",
     "count": 2
   }
 }

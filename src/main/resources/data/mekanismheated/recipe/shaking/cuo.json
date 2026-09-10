@@ -1,0 +1,18 @@
+{
+  "type": "mekanismheated:shaking",
+  "input": {
+    "count": 4,
+    "item": "mekanismheated:cuo_dust"
+  },
+  "fluid_input": {
+    "fluid": "minecraft:water",
+    "amount": 2000
+  },
+  "output": [{
+    "id": "mekanismheated:pure_cuo_dust",
+    "count": 3
+  }, {
+    "id": "mekanismheated:cu2s_dust",
+    "count": 1
+  }]
+}

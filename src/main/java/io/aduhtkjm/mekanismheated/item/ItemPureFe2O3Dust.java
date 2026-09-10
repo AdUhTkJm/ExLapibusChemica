@@ -7,14 +7,19 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import org.lwjgl.system.NonnullDefault;
 
+import io.aduhtkjm.mekanismheated.ModLang;
 import java.util.List;
 
 @NonnullDefault
-public class CaCO3DustItem extends Item {
-    public static final int TINT = 0xFF0F7F7F;
-    private static final Component TOOLTIP = Component.literal("CaCO₃").withStyle(ChatFormatting.GOLD);
+public class ItemPureFe2O3Dust extends Item {
+    public static final int TINT = 0xFF650E0E;
 
-    public CaCO3DustItem(Properties properties) {
+    private static final Component TOOLTIP = Component.literal("Fe₂O₃ (")
+          .withStyle(ChatFormatting.GOLD)
+          .append(ModLang.PURE.translate())
+          .append(Component.literal(")"));
+
+    public ItemPureFe2O3Dust(Properties properties) {
         super(properties);
     }
 

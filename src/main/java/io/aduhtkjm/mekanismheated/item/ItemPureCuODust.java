@@ -1,5 +1,6 @@
 package io.aduhtkjm.mekanismheated.item;
 
+import io.aduhtkjm.mekanismheated.ModLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -10,11 +11,15 @@ import org.lwjgl.system.NonnullDefault;
 import java.util.List;
 
 @NonnullDefault
-public class FeS2DustItem extends Item {
-    public static final int TINT = 0xFFE9EE67;
-    private static final Component TOOLTIP = Component.literal("FeS₂").withStyle(ChatFormatting.GOLD);
+public class ItemPureCuODust extends Item {
+    public static final int TINT = 0xFF040403;
 
-    public FeS2DustItem(Properties properties) {
+    private static final Component TOOLTIP = Component.literal("CuO (")
+          .withStyle(ChatFormatting.GOLD)
+          .append(ModLang.PURE.translate())
+          .append(Component.literal(")"));
+
+    public ItemPureCuODust(Properties properties) {
         super(properties);
     }
 

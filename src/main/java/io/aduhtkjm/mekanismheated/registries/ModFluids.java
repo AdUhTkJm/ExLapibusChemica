@@ -2,10 +2,10 @@ package io.aduhtkjm.mekanismheated.registries;
 
 import io.aduhtkjm.mekanismheated.Mod;
 import io.aduhtkjm.mekanismheated.content.unstablelava.UnstableLavaFluid;
-import io.aduhtkjm.mekanismheated.item.ChemicalFormulaBucketItem;
+import io.aduhtkjm.mekanismheated.item.ItemChemicalFormulaBucket;
 import java.util.function.UnaryOperator;
 
-import io.aduhtkjm.mekanismheated.item.Fe2O3DustItem;
+import io.aduhtkjm.mekanismheated.item.ItemFe2O3Dust;
 import mekanism.common.registration.impl.FluidDeferredRegister;
 import mekanism.common.registration.impl.FluidDeferredRegister.FluidTypeRenderProperties;
 import mekanism.common.registration.impl.FluidDeferredRegister.MekanismFluidType;
@@ -51,38 +51,38 @@ public class ModFluids {
         FLUIDS.register("wood_tar", renderProperties -> renderProperties.tint(0xFF513721));
     public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, BucketItem> ASPHALT =
         FLUIDS.register("asphalt", renderProperties -> renderProperties.tint(0xFF234623));
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> METHANOL =
-        FLUIDS.register("methanol", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "CH\u2083OH"),
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ItemChemicalFormulaBucket> METHANOL =
+        FLUIDS.register("methanol", (fluid, properties) -> new ItemChemicalFormulaBucket(fluid, properties, "CH\u2083OH"),
             UnaryOperator.identity(), renderProperties -> renderProperties.tint(0xFFCDCDB2));
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> ACETIC_ACID =
-        FLUIDS.register("acetic_acid", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "CH\u2083COOH"),
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ItemChemicalFormulaBucket> ACETIC_ACID =
+        FLUIDS.register("acetic_acid", (fluid, properties) -> new ItemChemicalFormulaBucket(fluid, properties, "CH\u2083COOH"),
             UnaryOperator.identity(), renderProperties -> renderProperties.tint(0xFFEEF0C7));
 
     // Liquid from gases
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> LIQUID_NITROGEN =
-        FLUIDS.register("liquid_nitrogen", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "N\u2082"),
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ItemChemicalFormulaBucket> LIQUID_NITROGEN =
+        FLUIDS.register("liquid_nitrogen", (fluid, properties) -> new ItemChemicalFormulaBucket(fluid, properties, "N\u2082"),
             UnaryOperator.identity(), renderProperties -> renderProperties.tint(0xFF85CBEE));
     public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, BucketItem> LIQUID_AIR_REMNANT =
         FLUIDS.register("liquid_air_remnant", renderProperties -> renderProperties.tint(0xFFF7F7F7));
 
     // Molten fluids
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> MOLTEN_IRON =
-        FLUIDS.register("molten_iron", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "Fe"),
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ItemChemicalFormulaBucket> MOLTEN_IRON =
+        FLUIDS.register("molten_iron", (fluid, properties) -> new ItemChemicalFormulaBucket(fluid, properties, "Fe"),
             UnaryOperator.identity(), renderProperties -> renderProperties.tint(0xFFCECECE));
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> MOLTEN_COPPER =
-        FLUIDS.register("molten_copper", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "Cu"),
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ItemChemicalFormulaBucket> MOLTEN_COPPER =
+        FLUIDS.register("molten_copper", (fluid, properties) -> new ItemChemicalFormulaBucket(fluid, properties, "Cu"),
             UnaryOperator.identity(), renderProperties -> renderProperties.tint(0xFFEBAD41));
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> MOLTEN_TIN =
-        FLUIDS.register("molten_tin", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "Sn"),
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ItemChemicalFormulaBucket> MOLTEN_TIN =
+        FLUIDS.register("molten_tin", (fluid, properties) -> new ItemChemicalFormulaBucket(fluid, properties, "Sn"),
             UnaryOperator.identity(), renderProperties -> renderProperties.tint(0xFFC9CBDC));
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> MOLTEN_BRONZE =
-        FLUIDS.register("molten_bronze", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "Cu-Sn"),
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ItemChemicalFormulaBucket> MOLTEN_BRONZE =
+        FLUIDS.register("molten_bronze", (fluid, properties) -> new ItemChemicalFormulaBucket(fluid, properties, "Cu-Sn"),
             UnaryOperator.identity(), renderProperties -> renderProperties.tint(0xFFF9A648));
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> MOLTEN_OSMIUM =
-        FLUIDS.register("molten_osmium", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "Os"),
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ItemChemicalFormulaBucket> MOLTEN_OSMIUM =
+        FLUIDS.register("molten_osmium", (fluid, properties) -> new ItemChemicalFormulaBucket(fluid, properties, "Os"),
             UnaryOperator.identity(), renderProperties -> renderProperties.tint(0xFFC8CCF3));
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> MOLTEN_THERMOENERGETIC_ALLOY =
-        FLUIDS.register("molten_thermoenergetic_alloy", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "Fe-Cu"),
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ItemChemicalFormulaBucket> MOLTEN_THERMOENERGETIC_ALLOY =
+        FLUIDS.register("molten_thermoenergetic_alloy", (fluid, properties) -> new ItemChemicalFormulaBucket(fluid, properties, "Fe-Cu"),
             UnaryOperator.identity(), renderProperties -> renderProperties.tint(0xFFFC7E11));
     public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, BucketItem> MOLTEN_INFUSED_ALLOY =
         FLUIDS.register("molten_infused_alloy", renderProperties -> renderProperties.tint(0xFFE64141));
@@ -90,9 +90,9 @@ public class ModFluids {
         FLUIDS.register("molten_reinforced_alloy", renderProperties -> renderProperties.tint(0xFF58D7F0));
 
     // Slurry
-    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ChemicalFormulaBucketItem> SLURRY_FE2O3 =
-        FLUIDS.register("slurry_fe2o3", (fluid, properties) -> new ChemicalFormulaBucketItem(fluid, properties, "Fe\u2082O\u2083"),
-            UnaryOperator.identity(), renderProperties -> renderProperties.tint(Fe2O3DustItem.TINT));
+    public static final FluidRegistryObject<MekanismFluidType, Source, Flowing, LiquidBlock, ItemChemicalFormulaBucket> SLURRY_FE2O3 =
+        FLUIDS.register("slurry_fe2o3", (fluid, properties) -> new ItemChemicalFormulaBucket(fluid, properties, "Fe\u2082O\u2083"),
+            UnaryOperator.identity(), renderProperties -> renderProperties.tint(ItemFe2O3Dust.TINT));
 
     //Unstable lava
     //Registered separately from the fluids above because Mekanism's FluidDeferredRegister only ever creates plain

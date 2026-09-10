@@ -1,6 +1,6 @@
 package io.aduhtkjm.mekanismheated.item;
 
-import io.aduhtkjm.mekanismheated.ModLang;
+import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -8,17 +8,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import org.lwjgl.system.NonnullDefault;
 
-import java.util.List;
-
 @NonnullDefault
-public class SpongeIronIngotItem extends Item {
-    public static final int TINT = 0xFFEBCABC;
-    private static final Component TOOLTIP = Component.literal("Fe (")
-        .withStyle(ChatFormatting.GOLD)
-        .append(ModLang.IMPURE.translate())
-        .append(Component.literal(")"));
+public class ItemCuODust extends Item {
+    public static final int TINT = 0xFF010101;
+    private static final Component TOOLTIP = Component.literal("CuO").withStyle(ChatFormatting.GOLD);
 
-    public SpongeIronIngotItem(Properties properties) {
+    public ItemCuODust(Properties properties) {
         super(properties);
     }
 

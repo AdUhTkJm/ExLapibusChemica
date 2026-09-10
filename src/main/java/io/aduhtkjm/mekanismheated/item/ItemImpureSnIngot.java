@@ -1,5 +1,6 @@
 package io.aduhtkjm.mekanismheated.item;
 
+import io.aduhtkjm.mekanismheated.ModLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -7,19 +8,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import org.lwjgl.system.NonnullDefault;
 
-import io.aduhtkjm.mekanismheated.ModLang;
 import java.util.List;
 
 @NonnullDefault
-public class PureFe2O3DustItem extends Item {
-    public static final int TINT = 0xFF650E0E;
+public class ItemImpureSnIngot extends Item {
+    public static final int TINT = 0xFFCBDDFC;
+    private static final Component TOOLTIP = Component.literal("Sn (")
+        .withStyle(ChatFormatting.GOLD)
+        .append(ModLang.IMPURE.translate())
+        .append(Component.literal(")"));
 
-    private static final Component TOOLTIP = Component.literal("Fe₂O₃ (")
-          .withStyle(ChatFormatting.GOLD)
-          .append(ModLang.PURE.translate())
-          .append(Component.literal(")"));
-
-    public PureFe2O3DustItem(Properties properties) {
+    public ItemImpureSnIngot(Properties properties) {
         super(properties);
     }
 
