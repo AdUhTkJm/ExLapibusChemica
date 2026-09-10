@@ -16,13 +16,16 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
 /**
- * Makes the mod's molten metal fluids behave like lava toward {@link LivingEntity}s.
+ * Makes the mod's lava-like fluids (the molten metals and unstable lava) behave like lava toward
+ * {@link LivingEntity}s.
  *
  * <p>Vanilla lava's player damage is not in {@code LavaFluid} (that class only ignites nearby
  * blocks); it lives in {@link Entity#lavaHurt()}, applied every tick while an entity reports
- * {@link Entity#isInLava()}. We reproduce that entity-side behavior here for our five molten
- * fluids, and deliberately skip the block-ignition part so our fluids do not set nearby blocks
- * on fire.
+ * {@link Entity#isInLava()}. NeoForge's {@code isInLava} only recognises the vanilla lava fluid type, so
+ * custom lava-like fluids are not covered by it. We reproduce that entity-side behavior here for our fluids.
+ * For the molten metals we deliberately skip the block-ignition part so they do not set nearby blocks
+ * on fire; unstable lava does ignite blocks, but through its own {@code LavaFluid#randomTick} rather than
+ * through this handler.
  *
  * <p>Damage is dealt through the vanilla {@code lava} damage source, so it is negated by the
  * Fire Resistance effect (and by fire-immune entity types such as Striders) exactly like vanilla
@@ -49,6 +52,9 @@ public final class MoltenFluidHandler {
         add(set, ModFluids.MOLTEN_THERMOENERGETIC_ALLOY);
         add(set, ModFluids.MOLTEN_INFUSED_ALLOY);
         add(set, ModFluids.MOLTEN_REINFORCED_ALLOY);
+        //Unstable lava is registered outside of FluidDeferredRegister, so it is added directly.
+        set.add(ModFluids.UNSTABLE_LAVA.get());
+        set.add(ModFluids.FLOWING_UNSTABLE_LAVA.get());
         moltenFluids = Set.copyOf(set);
     }
 

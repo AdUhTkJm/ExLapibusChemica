@@ -2,6 +2,7 @@ package io.aduhtkjm.mekanismheated;
 
 import com.mojang.logging.LogUtils;
 import io.aduhtkjm.mekanismheated.command.ChunkTemperatureCommand;
+import io.aduhtkjm.mekanismheated.content.ambient.AmbientMeltingHandler;
 import io.aduhtkjm.mekanismheated.content.fusedpipe.FusedPipeRegistry;
 import io.aduhtkjm.mekanismheated.content.moltenfluid.MoltenFluidHandler;
 import io.aduhtkjm.mekanismheated.network.PacketCoolerSetEnergy;
@@ -55,6 +56,10 @@ public class Mod {
         ModBlocks.BLOCKS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModFluids.FLUIDS.register(modEventBus);
+        ModFluids.UNSTABLE_LAVA_TYPES.register(modEventBus);
+        ModFluids.UNSTABLE_LAVA_FLUID_REGISTER.register(modEventBus);
+        ModFluids.UNSTABLE_LAVA_BLOCK_REGISTER.register(modEventBus);
+        ModFluids.UNSTABLE_LAVA_ITEM_REGISTER.register(modEventBus);
         ModTileEntityTypes.TILE_ENTITY_TYPES.register(modEventBus);
         ModContainerTypes.CONTAINER_TYPES.register(modEventBus);
         ModChemicals.CHEMICALS.register(modEventBus);
@@ -71,6 +76,10 @@ public class Mod {
         NeoForge.EVENT_BUS.addListener(FusedPipeRegistry::onServerTickPost);
         NeoForge.EVENT_BUS.addListener(FusedPipeRegistry::onServerStopping);
         NeoForge.EVENT_BUS.addListener(MoltenFluidHandler::onEntityTickPost);
+        NeoForge.EVENT_BUS.addListener(AmbientMeltingHandler::onChunkLoad);
+        NeoForge.EVENT_BUS.addListener(AmbientMeltingHandler::onChunkUnload);
+        NeoForge.EVENT_BUS.addListener(AmbientMeltingHandler::onLevelUnload);
+        NeoForge.EVENT_BUS.addListener(AmbientMeltingHandler::onServerTickPost);
         NeoForge.EVENT_BUS.addListener(ChunkTemperatureCommand::onRegisterCommands);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
@@ -83,6 +92,7 @@ public class Mod {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(ModFluids.FLUIDS::registerBucketDispenserBehavior);
+        event.enqueueWork(ModFluids::registerUnstableLavaDispenserBehavior);
         event.enqueueWork(MoltenFluidHandler::init);
     }
 

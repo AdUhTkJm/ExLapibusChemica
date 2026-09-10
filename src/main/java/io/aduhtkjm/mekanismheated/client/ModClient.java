@@ -40,6 +40,7 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.neoforge.client.model.DynamicFluidContainerModel;
 
 @EventBusSubscriber(modid = Mod.MODID, value = Dist.CLIENT)
 public class ModClient {
@@ -47,6 +48,8 @@ public class ModClient {
     @SubscribeEvent
     public static void registerItemColorHandlers(RegisterColorHandlersEvent.Item event) {
         ClientRegistrationUtil.registerBucketColorHandler(event, ModFluids.FLUIDS);
+        //Unstable lava is registered outside of ModFluids.FLUIDS, so its bucket is coloured by hand.
+        event.register(new DynamicFluidContainerModel.Colors(), ModFluids.UNSTABLE_LAVA_BUCKET.get());
 
         ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? CuoDustItem.TINT : -1, ModItems.CUO_DUST);
         ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? Fe2O3DustItem.TINT : -1, ModItems.FE2O3_DUST);
@@ -67,6 +70,7 @@ public class ModClient {
     @SubscribeEvent
     public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
         ClientRegistrationUtil.registerFluidExtensions(event, ModFluids.FLUIDS);
+        event.registerFluidType(new UnstableLavaClientExtensions(), ModFluids.UNSTABLE_LAVA_TYPE.get());
         event.registerBlock(new FusedPipeBlockExtensions(), ModBlocks.FUSED_PIPE.get());
     }
 

@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "mekanismheated:unstable_lava",
+    "mekanismheated:flowing_unstable_lava"
+  ]
+}

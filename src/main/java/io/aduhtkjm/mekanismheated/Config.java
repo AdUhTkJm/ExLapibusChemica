@@ -5,6 +5,10 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import io.aduhtkjm.mekanismheated.content.ambient.AmbientMeltingHandler;
+import io.aduhtkjm.mekanismheated.content.ambient.BlockMeltFilter;
+import java.util.List;
+
 @EventBusSubscriber(modid = Mod.MODID)
 public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
@@ -78,6 +82,16 @@ public class Config {
         public static ModConfigSpec.DoubleValue CENTER_EFFECT;
         public static ModConfigSpec.DoubleValue OUTER_EFFECT;
         public static ModConfigSpec.IntValue CHUNK_RADIUS;
+    }
+
+    public static class AmbientMelting {
+        public static ModConfigSpec.EnumValue<BlockMeltFilter.Mode> MODE;
+        public static ModConfigSpec.ConfigValue<List<? extends String>> BLOCKS;
+        public static ModConfigSpec.DoubleValue MELT_THRESHOLD;
+        public static ModConfigSpec.IntValue SOURCE_INTERVAL;
+        public static ModConfigSpec.IntValue SOURCE_SAMPLES;
+        public static ModConfigSpec.IntValue MELT_INTERVAL;
+        public static ModConfigSpec.IntValue MELT_SAMPLES;
     }
 
     public static ModConfigSpec SPEC;
@@ -247,10 +261,36 @@ public class Config {
             .comment("Radius in chunks around the machine's own chunk that receive the outer effect. 1 corresponds to a 3x3 chunk area.")
             .defineInRange("chunkRadius", 1, 0, 32);
         BUILDER.pop();
+
+        BUILDER.push("ambientMelting");
+        AmbientMelting.MODE = BUILDER
+            .comment("How the blocks list is interpreted. WHITELIST: only the listed blocks melt (default, with \"minecraft\" listed so only vanilla blocks melt). BLACKLIST: every block except the listed ones melts.")
+            .defineEnum("mode", BlockMeltFilter.Mode.WHITELIST);
+        AmbientMelting.BLOCKS = BUILDER
+            .comment("Blocks that the mode applies to. Each entry is either a namespace (e.g. \"minecraft\", matching every block in that namespace) or the qualified id of a single block (e.g. \"minecraft:stone\"). Air is always rejected regardless of this list.")
+            .defineListAllowEmpty("blocks", List.of("minecraft"), () -> "minecraft:stone", BlockMeltFilter::isValidEntry);
+        AmbientMelting.MELT_THRESHOLD = BUILDER
+            .comment("Ambient temperature in Kelvin above which a chunk's blocks start melting into unstable lava.")
+            .defineInRange("meltThreshold", 1_800D, 0D, Double.MAX_VALUE);
+        AmbientMelting.SOURCE_INTERVAL = BUILDER
+            .comment("How often (in game ticks) every ticking chunk is sampled to turn flowing unstable lava back into source blocks, which lets the melting cascade instead of draining away.")
+            .defineInRange("sourceInterval", 20, 1, Integer.MAX_VALUE);
+        AmbientMelting.SOURCE_SAMPLES = BUILDER
+            .comment("How many random positions per chunk are checked on each source pass.")
+            .defineInRange("sourceSamples", 15, 0, Integer.MAX_VALUE);
+        AmbientMelting.MELT_INTERVAL = BUILDER
+            .comment("How often (in game ticks) every ticking chunk above the melt threshold is sampled to melt one of its blocks into unstable lava.")
+            .defineInRange("meltInterval", 40, 1, Integer.MAX_VALUE);
+        AmbientMelting.MELT_SAMPLES = BUILDER
+            .comment("How many random positions per hot chunk are checked on each melt pass.")
+            .defineInRange("meltSamples", 1, 0, Integer.MAX_VALUE);
+        BUILDER.pop();
         SPEC = BUILDER.build();
     }
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
+        //Recompile the melt filter so config edits take effect without a restart.
+        AmbientMeltingHandler.onConfigReload();
     }
 }

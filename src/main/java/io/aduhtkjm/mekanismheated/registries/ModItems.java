@@ -61,5 +61,6 @@ public class ModItems {
         output.accept(ModFluids.MOLTEN_THERMOENERGETIC_ALLOY.getBucket());
         output.accept(ModFluids.MOLTEN_INFUSED_ALLOY.getBucket());
         output.accept(ModFluids.MOLTEN_REINFORCED_ALLOY.getBucket());
+        output.accept(ModFluids.UNSTABLE_LAVA_BUCKET.get());
     }
 }
