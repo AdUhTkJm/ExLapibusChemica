@@ -13,7 +13,7 @@ import java.util.List;
 @NonnullDefault
 public class ImpureSnIngotItem extends Item {
     public static final int TINT = 0xFFCBDDFC;
-    private static final Component TOOLTIP = Component.literal("Fe (")
+    private static final Component TOOLTIP = Component.literal("Sn (")
         .withStyle(ChatFormatting.GOLD)
         .append(ModLang.IMPURE.translate())
         .append(Component.literal(")"));
