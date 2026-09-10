@@ -29,8 +29,7 @@ public class HeatedMeltingRecipeCategory extends AbstractHeatSmelterRecipeCatego
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<HeatedItemStackToFluidRecipe> recipeHolder, IFocusGroup focusGroup) {
         HeatedItemStackToFluidRecipe recipe = recipeHolder.value();
         IRecipeSlotBuilder inputSlot = initItem(builder, RecipeIngredientRole.INPUT, input, recipe.getInput().getRepresentations());
-        addTemperatureTooltip(inputSlot, recipe.getTemperatureThreshold());
-        addHeatTooltip(inputSlot, recipe.getHeatConsumed());
+        addTooltip(inputSlot, recipe.getTemperatureThreshold(), recipe.getHeatConsumed());
         initFluid(builder, RecipeIngredientRole.OUTPUT, outputTank, recipe.getOutputDefinition());
     }
 }

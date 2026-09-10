@@ -10,8 +10,10 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import org.lwjgl.system.NonnullDefault;
 
 /** Heated smelting recipes for the Heat Smelter: item to item above the normal smelting threshold. */
+@NonnullDefault
 public class HeatedSmeltingRecipeCategory extends AbstractHeatSmelterRecipeCategory<HeatedItemStackToItemStackRecipe> {
 
     private final GuiSlot output;
@@ -25,8 +27,7 @@ public class HeatedSmeltingRecipeCategory extends AbstractHeatSmelterRecipeCateg
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<HeatedItemStackToItemStackRecipe> recipeHolder, IFocusGroup focusGroup) {
         HeatedItemStackToItemStackRecipe recipe = recipeHolder.value();
         IRecipeSlotBuilder inputSlot = initItem(builder, RecipeIngredientRole.INPUT, input, recipe.getInput().getRepresentations());
-        addTemperatureTooltip(inputSlot, recipe.getTemperatureThreshold());
-        addHeatTooltip(inputSlot, recipe.getHeatConsumed());
+        addTooltip(inputSlot, recipe.getTemperatureThreshold(), recipe.getHeatConsumed());
         initItem(builder, RecipeIngredientRole.OUTPUT, output, recipe.getOutputDefinition());
     }
 }

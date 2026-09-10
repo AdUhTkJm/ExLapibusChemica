@@ -1,5 +1,6 @@
 package io.aduhtkjm.mekanismheated.integration.jei.category;
 
+import io.aduhtkjm.mekanismheated.Config;
 import io.aduhtkjm.mekanismheated.ModLang;
 import mekanism.client.gui.element.GuiUpArrow;
 import mekanism.client.gui.element.bar.GuiVerticalPowerBar;
@@ -12,7 +13,6 @@ import mekanism.client.recipe_viewer.type.IRecipeViewerRecipeType;
 import mekanism.common.inventory.container.slot.SlotOverlay;
 import mekanism.common.util.MekanismUtils;
 import mekanism.common.util.UnitDisplayUtils.TemperatureUnit;
-import mekanism.common.util.text.EnergyDisplay;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import net.minecraft.world.item.crafting.Recipe;
@@ -23,7 +23,9 @@ import net.minecraft.world.item.crafting.Recipe;
  */
 abstract class AbstractHeatSmelterRecipeCategory<RECIPE extends Recipe<?>> extends HolderRecipeCategory<RECIPE> {
 
+    private static final double CAPACITY = Config.HeatSmelter.HEAT_CAPACITY.get();
     protected final GuiSlot input;
+
 
     protected AbstractHeatSmelterRecipeCategory(IGuiHelper helper, IRecipeViewerRecipeType<RECIPE> recipeType) {
         super(helper, recipeType);
@@ -35,22 +37,11 @@ abstract class AbstractHeatSmelterRecipeCategory<RECIPE extends Recipe<?>> exten
         addSlot(SlotType.POWER, 64, 53).with(SlotOverlay.POWER);
     }
 
-    /**
-     * Notes on the input that the smelter only processes it once it is at least the given temperature, in Kelvin.
-     */
-    protected void addTemperatureTooltip(IRecipeSlotBuilder slotBuilder, double temperatureThreshold) {
-        slotBuilder.addRichTooltipCallback((slotView, tooltip) -> tooltip.add(ModLang.MIN_TEMPERATURE.translate(
-              MekanismUtils.getTemperatureDisplay(temperatureThreshold, TemperatureUnit.KELVIN, true))));
-    }
-
-    /**
-     * Notes on the input that the smelter consumes the given amount of heat (in heat units, displayed as energy) over the
-     * recipe's whole processing.
-     */
-    protected void addHeatTooltip(IRecipeSlotBuilder slotBuilder, double heatConsumed) {
-        if (heatConsumed > 0) {
-            slotBuilder.addRichTooltipCallback((slotView, tooltip) -> tooltip.add(ModLang.HEAT_CONSUMED.translate(
-                  EnergyDisplay.of((long) heatConsumed))));
-        }
+    protected void addTooltip(IRecipeSlotBuilder slotBuilder, double temperatureThreshold, double heatConsumed) {
+        slotBuilder.addRichTooltipCallback((slotView, tooltip) -> {
+            tooltip.add(ModLang.MIN_TEMPERATURE.translate(
+                MekanismUtils.getTemperatureDisplay(temperatureThreshold, TemperatureUnit.KELVIN, true)));
+            tooltip.add(ModLang.HEAT_CONSUMED.translate(((long) heatConsumed / CAPACITY) + " K"));
+        });
     }
 }
