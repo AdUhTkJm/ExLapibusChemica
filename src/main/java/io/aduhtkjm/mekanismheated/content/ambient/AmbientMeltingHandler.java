@@ -1,6 +1,7 @@
 package io.aduhtkjm.mekanismheated.content.ambient;
 
 import io.aduhtkjm.mekanismheated.Config;
+import io.aduhtkjm.mekanismheated.content.unstablelava.UnstableLavaFluid;
 import io.aduhtkjm.mekanismheated.content.unstablelava.UnstableLavaVariant;
 import io.aduhtkjm.mekanismheated.registries.ModFluids;
 import it.unimi.dsi.fastutil.longs.LongIterator;
@@ -10,6 +11,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import java.util.Map;
 import mekanism.api.heat.HeatAPI;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
@@ -124,7 +126,7 @@ public final class AmbientMeltingHandler {
             }
             ChunkPos chunkPos = new ChunkPos(packed);
             if (sourcePass && sourceSamples > 0) {
-                solidifyFlowingLava(level, chunkPos, sourceSamples, random);
+                cascadeMelting(level, chunkPos, sourceSamples, filter, random);
             }
             if (meltPass && meltSamples > 0 && isAboveThreshold(level, chunkPos)) {
                 meltBlocks(level, chunkPos, meltSamples, filter, random);
@@ -133,22 +135,19 @@ public final class AmbientMeltingHandler {
     }
 
     /**
-     * Promotes flowing unstable lava back to source blocks so the melted lava does not drain away. Applies to
-     * every unstable lava variant, not just plain unstable lava, so metals melted into it keep their flavour.
+     * Attempts to melt blocks below unstable lava.
      */
-    private static void solidifyFlowingLava(ServerLevel level, ChunkPos chunkPos, int samples, RandomSource random) {
+    private static void cascadeMelting(ServerLevel level, ChunkPos chunkPos, int samples, BlockMeltFilter filter, RandomSource random) {
         for (int i = 0; i < samples; i++) {
             BlockPos pos = randomPosition(level, chunkPos, random);
             FluidState fluid = level.getFluidState(pos);
-            if (fluid.isSource()) {
-                //Already a source block, so there is nothing to promote.
-                continue;
+            if (fluid.getType() instanceof UnstableLavaFluid unstable) {
+                BlockPos adjacent = pos.relative(Direction.getRandom(random));
+                if (!filter.test(level.getBlockState(adjacent))) {
+                    continue;
+                }
+                level.setBlock(adjacent, unstable.getVariant().block().get().defaultBlockState(), Block.UPDATE_ALL);
             }
-            UnstableLavaVariant variant = ModFluids.unstableLavaVariant(fluid.getType());
-            if (variant == null) {
-                continue;
-            }
-            level.setBlock(pos, variant.block().get().defaultBlockState(), Block.UPDATE_ALL);
         }
     }
 

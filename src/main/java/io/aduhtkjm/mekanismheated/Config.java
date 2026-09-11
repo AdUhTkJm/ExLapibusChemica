@@ -294,7 +294,7 @@ public class Config {
             .comment("Ambient temperature in Kelvin above which a chunk's blocks start melting into unstable lava.")
             .defineInRange("meltThreshold", 1_800D, 0D, Double.MAX_VALUE);
         AmbientMelting.SOURCE_INTERVAL = BUILDER
-            .comment("How often (in game ticks) every ticking chunk is sampled to turn flowing unstable lava back into source blocks, which lets the melting cascade instead of draining away.")
+            .comment("How often (in game ticks) every ticking chunk is sampled to turn the block below unstable lava back into another unstable lava source, essentially cascading the melting process.")
             .defineInRange("sourceInterval", 20, 1, Integer.MAX_VALUE);
         AmbientMelting.SOURCE_SAMPLES = BUILDER
             .comment("How many random positions per chunk are checked on each source pass.")
