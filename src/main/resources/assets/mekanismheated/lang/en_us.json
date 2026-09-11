@@ -83,6 +83,7 @@
   "gui.mekanismheated.heat_smelter.buffer": "Buffer: %1$s",
   "gui.mekanismheated.heat_smelter.temperature": "Temp: %1$s",
   "gui.mekanismheated.min_temperature": "Minimum Temperature: %1$s",
+  "gui.mekanismheated.reaction_duration": "Duration: %1$s ticks",
   "gui.mekanismheated.target_temperature": "Target: %1$s",
   "gui.mekanismheated.temperature_range": "Temperature: %1$s - %2$s",
   "item.mekanismheated.acetic_acid_bucket": "Acetic Acid Bucket",

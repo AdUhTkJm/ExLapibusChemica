@@ -22,5 +22,6 @@
     "chemicals": []
   },
   "min_temperature": 300,
-  "max_temperature": 4000
+  "max_temperature": 4000,
+  "duration": 45
 }

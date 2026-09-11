@@ -82,6 +82,7 @@
   "gui.mekanismheated.heat_smelter.buffer": "缓存：%1$s",
   "gui.mekanismheated.heat_smelter.temperature": "温度：%1$s",
   "gui.mekanismheated.min_temperature": "最低温度：%1$s",
+  "gui.mekanismheated.reaction_duration": "反应耗时：%1$s 刻",
   "gui.mekanismheated.target_temperature": "目标温度：%1$s",
   "gui.mekanismheated.temperature_range": "温度：%1$s - %2$s",
   "item.mekanismheated.acetic_acid_bucket": "乙酸桶",

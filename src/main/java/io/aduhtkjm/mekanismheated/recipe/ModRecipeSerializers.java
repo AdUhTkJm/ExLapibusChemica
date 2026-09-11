@@ -3,6 +3,7 @@ package io.aduhtkjm.mekanismheated.recipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.aduhtkjm.mekanismheated.Config;
 import io.aduhtkjm.mekanismheated.Mod;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +45,13 @@ public class ModRecipeSerializers {
      * in {@link BasicFractionationRecipe}'s constructor, which runs after decoding both fields.
      */
     private static final Codec<Double> TEMPERATURE_CODEC = TEMPERATURE_THRESHOLD_CODEC;
+
+    /**
+     * Codec for a reaction recipe's duration in ticks: the cooldown between two operations of the recipe. Must be at least
+     * one. The field itself is optional, falling back to {@link Config.ReactionChamber#DEFAULT_DURATION}; that fallback is
+     * read while the recipe is parsed, so recipes which omit the field pick up a changed config value on the next reload.
+     */
+    private static final Codec<Integer> DURATION_CODEC = Codec.intRange(1, Integer.MAX_VALUE);
 
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, Mod.MODID);
 
@@ -194,11 +202,12 @@ public class ModRecipeSerializers {
                       ReactionIngredientGroup.CODEC.fieldOf("outputs")
                             .forGetter(recipe -> new ReactionIngredientGroup(recipe.getItemOutputIngredient(), recipe.getFluidOutputIngredients(), recipe.getChemicalOutputIngredients())),
                       POSITIVE_TEMPERATURE_CODEC.fieldOf("min_temperature").forGetter(BasicReactionChamberRecipe::getMinTemperature),
-                      POSITIVE_TEMPERATURE_CODEC.fieldOf("max_temperature").forGetter(BasicReactionChamberRecipe::getMaxTemperature)
-                ).apply(instance, (inputs, outputs, minTemperature, maxTemperature) -> new BasicReactionChamberRecipe(
+                      POSITIVE_TEMPERATURE_CODEC.fieldOf("max_temperature").forGetter(BasicReactionChamberRecipe::getMaxTemperature),
+                      DURATION_CODEC.optionalFieldOf("duration")
+                ).apply(instance, (inputs, outputs, minTemperature, maxTemperature, duration) -> new BasicReactionChamberRecipe(
                       inputs.item(), inputs.fluids(), inputs.chemicals(),
                       outputs.item(), outputs.fluids(), outputs.chemicals(),
-                      minTemperature, maxTemperature
+                      minTemperature, maxTemperature, duration.orElseGet(Config.ReactionChamber.DEFAULT_DURATION::get)
                 ))),
                 StreamCodec.composite(
                       ReactionIngredientGroup.STREAM_CODEC,
@@ -207,10 +216,12 @@ public class ModRecipeSerializers {
                       recipe -> new ReactionIngredientGroup(recipe.getItemOutputIngredient(), recipe.getFluidOutputIngredients(), recipe.getChemicalOutputIngredients()),
                       ByteBufCodecs.DOUBLE, BasicReactionChamberRecipe::getMinTemperature,
                       ByteBufCodecs.DOUBLE, BasicReactionChamberRecipe::getMaxTemperature,
-                      (inputs, outputs, minTemperature, maxTemperature) -> new BasicReactionChamberRecipe(
+                      //The duration is sent resolved (never with a default), so a client decodes exactly what the server uses
+                      ByteBufCodecs.VAR_INT, BasicReactionChamberRecipe::getDuration,
+                      (inputs, outputs, minTemperature, maxTemperature, duration) -> new BasicReactionChamberRecipe(
                             inputs.item(), inputs.fluids(), inputs.chemicals(),
                             outputs.item(), outputs.fluids(), outputs.chemicals(),
-                            minTemperature, maxTemperature
+                            minTemperature, maxTemperature, duration
                       )
                 )));
 

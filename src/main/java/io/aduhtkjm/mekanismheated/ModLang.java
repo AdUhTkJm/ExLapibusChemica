@@ -21,6 +21,7 @@ public enum ModLang implements ILangEntry {
     MIN_TEMPERATURE("gui", "min_temperature"),
     HEAT_CONSUMED("gui", "heat_consumed"),
     TEMPERATURE_RANGE("gui", "temperature_range"),
+    REACTION_DURATION("gui", "reaction_duration"),
     PURE("tooltip", "pure"),
     IMPURE("tooltip", "impure"),
     DESCRIPTION_CREATIVE_HEAT_BLOCK("block", "creative_heat_block"),

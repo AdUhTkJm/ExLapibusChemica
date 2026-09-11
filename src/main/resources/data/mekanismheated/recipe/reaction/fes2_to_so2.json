@@ -23,5 +23,6 @@
     }]
   },
   "min_temperature": 1570,
-  "max_temperature": 4000
+  "max_temperature": 4000,
+  "duration": 60
 }

@@ -8,10 +8,10 @@ import io.aduhtkjm.mekanismheated.registries.ModBlocks;
 import io.aduhtkjm.mekanismheated.tank.MultiFluidChemicalTank;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.IdentityHashMap;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
@@ -47,8 +47,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -57,15 +59,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A machine that automatically runs its {@link ReactionChamberRecipe}s on a fixed cadence.
+ * A machine that automatically runs its {@link ReactionChamberRecipe}s, each on its own schedule.
  *
  * <p>The chamber's contents are a single item input slot, a single item output slot and a {@link MultiFluidChemicalTank} that
- * mixes fluids and chemicals in one shared pool. Every {@code reactionInterval} ticks (and immediately whenever the contents
- * change) it executes its recipes: each recipe whose temperature window contains the chamber's current heat-capacitor
- * temperature is applied once, and the list is re-scanned so that one recipe's output can feed another's input, until no
- * recipe that has not yet reacted this execution can react (or the per-execution operation cap is hit). A recipe that reacts
- * in an execution will not react again in that same execution; it only runs on a later one. Inputs are consumed from the
- * slots/tank, outputs are inserted into them, and anything that does not fit is silently discarded.
+ * mixes fluids and chemicals in one shared pool. A recipe reacts as soon as its inputs are available and its temperature window
+ * contains the chamber's current heat-capacitor temperature: it consumes its inputs and inserts its outputs in a single tick,
+ * and then goes on cooldown for its {@linkplain ReactionChamberRecipe#getDuration() duration}, during which it cannot react
+ * again. Recipes therefore run at independent rates rather than the whole chamber working on one fixed interval. Inputs are
+ * consumed from the slots/tank, outputs are inserted into them, and anything that does not fit is silently discarded.
+ * Cooldowns are not saved, so a chamber that gets reloaded starts with every recipe ready to react.
+ *
+ * <p>To keep idle ticks cheap the chamber only walks the recipes that matter to it: the ones its current contents can
+ * satisfy, plus the ones that are still cooling down. That watched list is rebuilt only when it can have changed - when the
+ * contents change, or when a reload replaces the recipes - so an idle tick just decrements a few cooldowns, and a chamber with
+ * nothing in it does nothing at all (which also freezes its cooldowns until there is something to work with again). A recipe
+ * that is ready but cannot react with the current contents (the temperature is out of its window, or another recipe took the
+ * shared inputs first) is left waiting instead of being re-tested every tick. A recipe that is no longer watched at all is
+ * simply absent from the list, and only gets looked at again by a rebuild.
  */
 public class TileEntityReactionChamber extends TileEntityConfigurableMachine {
 
@@ -93,12 +103,25 @@ public class TileEntityReactionChamber extends TileEntityConfigurableMachine {
     /** Default per-face {@link DataType} for the chamber's item, fluid, chemical and heat transmission. */
     private record SideDefaults(DataType item, DataType fluid, DataType chemical, DataType heat) {}
 
-    /** Set whenever a slot or the tank changes; an execution is triggered while it is set. Cleared once nothing can react. */
+    /** Set whenever a slot or the tank changes; the watched recipes are rebuilt on the next tick while it is set. */
     private boolean needsReaction;
-    /** Counts ticks since the last periodic execution. */
-    private int tickCount;
     /** Set when the shared pool's contents change; the next server tick forwards them to clients for the in-world render. */
     private boolean needsSync;
+
+    /**
+     * The recipes the chamber is watching: those its current contents can satisfy, plus any that are still cooling down. Kept
+     * short and rebuilt only when it can have changed (see {@link #rebuildPendingReactions(RecipeManager)}), so that an idle
+     * tick only has to walk it instead of the whole recipe list.
+     */
+    private final List<PendingReaction> pendingReactions = new ArrayList<>();
+
+    /**
+     * The recipe manager {@link #pendingReactions} was built from, or {@code null} before the first build. A different
+     * instance means a data or tag reload replaced the recipes, so the watched entries - which hold recipe instances - have to
+     * be rebuilt around the new ones.
+     */
+    @Nullable
+    private RecipeManager trackedRecipeManager;
 
     private BasicHeatCapacitor heatCapacitor;
     private double lastEnvironmentLoss;
@@ -240,13 +263,7 @@ public class TileEntityReactionChamber extends TileEntityConfigurableMachine {
         HeatTransfer transfer = simulate();
         lastEnvironmentLoss = transfer.environmentTransfer();
         lastTransferLoss = transfer.adjacentTransfer();
-        //React on the periodic interval, and immediately whenever the contents changed since the last tick.
-        if (needsReaction || ++tickCount >= Config.ReactionChamber.REACTION_INTERVAL.get()) {
-            tickCount = 0;
-            setActive(runReactions());
-        } else if (getActive()) {
-            setActive(false);
-        }
+        setActive(tickReactions());
         //Batch content changes into a single update packet per tick for the in-world render
         if (needsSync) {
             needsSync = false;
@@ -256,70 +273,112 @@ public class TileEntityReactionChamber extends TileEntityConfigurableMachine {
     }
 
     /**
-     * Executes the chamber's recipes, applying each eligible recipe at most once (or until the per-execution operation cap is
-     * hit).
+     * Advances every recipe the chamber is watching by one tick: recipes that are cooling down move one tick closer to being
+     * ready, and every recipe that is ready reacts if the chamber's temperature is within its window.
      *
-     * <p>Each pass walks every recipe in order and applies a single operation to each recipe that has not yet reacted this
-     * execution, is complete, and whose temperature window contains the current temperature. A pass that applied at least one
-     * operation is followed by another, so one recipe's output can feed another's input even when the consuming recipe comes
-     * first in the list; the scan stops once a full pass reacts nothing new. A recipe that reacts is recorded and skipped for
-     * the rest of this execution, so it only runs again on a later (interval- or content-triggered) execution. Successful
-     * operations change the contents (see {@link #onContentsChanged()}), which keeps {@link #needsReaction} set during the
-     * loop; it is cleared once we stop so the machine idles until the next content change or interval.
+     * <p>The watched list is rebuilt first whenever the contents changed on the previous tick or a reload replaced the
+     * recipes; that rebuild is also what makes a recipe which was waiting on its inputs eligible again.
      *
-     * @return {@code true} if at least one operation was applied.
+     * @return {@code true} if the chamber should render as active, i.e. it reacted or still has a cooldown running.
      */
-    private boolean runReactions() {
+    private boolean tickReactions() {
         Level level = getLevel();
         if (level == null || level.isClientSide || !canFunction()) {
-            needsReaction = false;
+            //No world to react in, and a redstone-disabled chamber freezes instead of running its cooldowns down
             return false;
         }
         if (inputSlot.isEmpty() && contentsTank.isEmpty()) {
-            needsReaction = false;
+            //Nothing to react with: no recipe can match, so skip the whole update. Cooldowns resume where they left off when
+            //contents arrive again, which also rebuilds the watched list and drops whatever no longer matches.
             return false;
         }
-        List<ReactionChamberRecipe> recipes = new ArrayList<>();
-        for (RecipeHolder<ReactionChamberRecipe> holder : level.getRecipeManager().getAllRecipesFor(ModRecipeTypes.TYPE_REACTION.value())) {
-            recipes.add(holder.value());
-        }
-        if (recipes.isEmpty()) {
+        RecipeManager recipeManager = level.getRecipeManager();
+        if (needsReaction || recipeManager != trackedRecipeManager) {
+            rebuildPendingReactions(recipeManager);
             needsReaction = false;
-            return false;
         }
-        int maxOperations = Config.ReactionChamber.MAX_OPERATIONS.get();
-        int operations = 0;
         boolean processed = false;
-        //A recipe that reacts is skipped for the rest of this execution so it only runs again on a later one. Tracked by
-        // identity, since value-equal but distinct recipes must each be allowed to react.
-        Set<ReactionChamberRecipe> reacted = Collections.newSetFromMap(new IdentityHashMap<>());
-        boolean progressed;
-        do {
-            progressed = false;
-            for (ReactionChamberRecipe recipe : recipes) {
-                if (reacted.contains(recipe)) {
-                    continue;
-                }
-                if (recipe.isIncomplete()) {
-                    continue;
-                }
-                if (!recipe.temperatureAllows(heatCapacitor.getTemperature())) {
-                    continue;
-                }
-                if (applyRecipe(recipe)) {
-                    reacted.add(recipe);
-                    progressed = true;
-                    processed = true;
-                    if (++operations >= maxOperations) {
-                        //Safety: let the next periodic execution pick up where we left off.
-                        needsReaction = false;
-                        return processed;
-                    }
-                }
+        boolean coolingDown = false;
+        boolean changed = false;
+        for (PendingReaction reaction : pendingReactions) {
+            //A recipe whose cooldown runs out on this tick is ready to react on this same tick
+            if (reaction.cooldown > 0 && --reaction.cooldown > 0) {
+                coolingDown = true;
+                continue;
             }
-        } while (progressed);
-        needsReaction = false;
-        return processed;
+            if (reaction.waiting) {
+                //Ready, but the current contents cannot satisfy this recipe and they have not changed since we last checked
+                continue;
+            }
+            ReactionChamberRecipe recipe = reaction.recipe.value();
+            if (!recipe.temperatureAllows(heatCapacitor.getTemperature())) {
+                //Unlike the inputs, the temperature drifts whether or not the contents change, so it is re-checked every tick
+                //and the recipe reacts as soon as the chamber is hot (or cold) enough
+                continue;
+            }
+            if (applyRecipe(recipe)) {
+                reaction.cooldown = recipe.getDuration();
+                processed = true;
+                coolingDown = true;
+                changed = true;
+            } else {
+                //Either another recipe took the shared input first on this tick, or this recipe produces exactly what it
+                //consumed. Wait for the contents to change again rather than re-testing it every tick.
+                reaction.waiting = true;
+            }
+        }
+        //Reacting changed the contents, so the next tick has to rebuild the watched list to pick up the recipes those new
+        //contents unlock. Note that this deliberately overwrites the flag our own operations set: a recipe that consumed its
+        //inputs without changing anything net must not count as a content change, or it would react again on every tick.
+        needsReaction = changed;
+        return processed || coolingDown;
+    }
+
+    /**
+     * Rebuilds {@link #pendingReactions} for the given recipe manager and the chamber's current contents.
+     *
+     * <p>The rebuilt list holds every complete recipe whose inputs the current contents satisfy, plus every recipe that was
+     * already watched and is still cooling down. Keeping the latter even when its inputs are gone means a recipe which briefly
+     * loses them to another recipe cannot react again early: its cooldown always runs to the end, so a recipe never runs more
+     * often than once per its duration. Every other recipe is left out of the list - one that cannot react and has finished
+     * cooling down simply is not watched again until the contents change.
+     */
+    private void rebuildPendingReactions(RecipeManager recipeManager) {
+        List<RecipeHolder<ReactionChamberRecipe>> recipes = new ArrayList<>(
+              recipeManager.getAllRecipesFor(ModRecipeTypes.TYPE_REACTION.value()));
+        //Recipes compete for the shared pool, so this order decides who gets a limited input first. Sorting by id makes that
+        //independent of the order in which the recipe manager happens to have loaded the recipes.
+        recipes.sort(Comparator.comparing(RecipeHolder<ReactionChamberRecipe>::id));
+        Map<ResourceLocation, PendingReaction> tracked = new HashMap<>(pendingReactions.size());
+        for (PendingReaction reaction : pendingReactions) {
+            tracked.put(reaction.recipe.id(), reaction);
+        }
+        pendingReactions.clear();
+        ReactionChamberRecipeInput input = createInput();
+        for (RecipeHolder<ReactionChamberRecipe> holder : recipes) {
+            ReactionChamberRecipe recipe = holder.value();
+            if (recipe.isIncomplete()) {
+                continue;
+            }
+            PendingReaction previous = tracked.get(holder.id());
+            if (previous != null && previous.cooldown > 0) {
+                //Rebind to the current holder, as a reload may have replaced the instances the watched entries point at, and
+                //shorten the cooldown if the recipe's duration shrank with it. Re-testing the recipe here is what wakes a
+                //waiting entry back up.
+                pendingReactions.add(new PendingReaction(holder, Math.min(previous.cooldown, recipe.getDuration()),
+                      !recipe.test(input)));
+            } else if (recipe.test(input)) {
+                pendingReactions.add(new PendingReaction(holder, 0, false));
+            }
+        }
+        trackedRecipeManager = recipeManager;
+    }
+
+    /**
+     * @return The chamber's current contents, gathered into the input the recipes are matched against.
+     */
+    private ReactionChamberRecipeInput createInput() {
+        return new ReactionChamberRecipeInput(inputSlot.getStack(), contentsTank.getFluids(), contentsTank.getChemicals());
     }
 
     /**
@@ -328,7 +387,7 @@ public class TileEntityReactionChamber extends TileEntityConfigurableMachine {
      * fit.
      *
      * @return {@code true} if the operation changed the chamber's contents (a reaction that produces exactly what it consumed
-     *         is treated as not having made progress so the scan can terminate).
+     *         is treated as not having made progress, so the chamber leaves it waiting until the contents change).
      */
     private boolean applyRecipe(ReactionChamberRecipe recipe) {
         List<FluidStack> fluids = contentsTank.getFluids();
@@ -432,6 +491,27 @@ public class TileEntityReactionChamber extends TileEntityConfigurableMachine {
             }
         }
         return false;
+    }
+
+    /**
+     * A recipe the chamber is watching, together with how long it still has to wait before it may react again.
+     */
+    private static final class PendingReaction {
+
+        private final RecipeHolder<ReactionChamberRecipe> recipe;
+        /** Ticks left before the recipe may react; zero when it is ready to react now. */
+        private int cooldown;
+        /**
+         * Set while the recipe is ready but cannot react with the current contents, so that it is not re-tested every tick.
+         * A rebuild, which happens whenever the contents change, re-checks it and clears this again.
+         */
+        private boolean waiting;
+
+        private PendingReaction(RecipeHolder<ReactionChamberRecipe> recipe, int cooldown, boolean waiting) {
+            this.recipe = recipe;
+            this.cooldown = cooldown;
+            this.waiting = waiting;
+        }
     }
 
     /**

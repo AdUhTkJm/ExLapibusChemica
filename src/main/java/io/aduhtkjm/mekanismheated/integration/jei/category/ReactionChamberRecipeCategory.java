@@ -64,10 +64,11 @@ public class ReactionChamberRecipeCategory extends HolderRecipeCategory<Reaction
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<ReactionChamberRecipe> recipeHolder,
                           IFocusGroup focusGroup) {
         ReactionChamberRecipe recipe = recipeHolder.value();
+        //The temperature window and the duration are noted on the first input slot, whichever kind of input comes first
+        IRecipeSlotBuilder infoSlot = null;
         if (recipe.hasItemInput()) {
-            IRecipeSlotBuilder itemInput = initItem(builder, RecipeIngredientRole.INPUT, inputItem,
+            infoSlot = initItem(builder, RecipeIngredientRole.INPUT, inputItem,
                   recipe.getItemInput().orElseThrow().getRepresentations());
-            addTemperatureTooltip(itemInput, recipe);
         }
         //Fill the input pool gauges with the recipe's fluid then chemical inputs, in order
         int inputIndex = 0;
@@ -75,13 +76,24 @@ public class ReactionChamberRecipeCategory extends HolderRecipeCategory<Reaction
             if (inputIndex >= POOL_SLOTS_PER_SIDE) {
                 break;
             }
-            initFluid(builder, RecipeIngredientRole.INPUT, inputPool.get(inputIndex++), fluid.getRepresentations());
+            IRecipeSlotBuilder slot = initFluid(builder, RecipeIngredientRole.INPUT, inputPool.get(inputIndex++),
+                  fluid.getRepresentations());
+            if (infoSlot == null) {
+                infoSlot = slot;
+            }
         }
         for (ChemicalStackIngredient chemical : recipe.getChemicalInputs()) {
             if (inputIndex >= POOL_SLOTS_PER_SIDE) {
                 break;
             }
-            initChemical(builder, RecipeIngredientRole.INPUT, inputPool.get(inputIndex++), chemical.getRepresentations());
+            IRecipeSlotBuilder slot = initChemical(builder, RecipeIngredientRole.INPUT, inputPool.get(inputIndex++),
+                  chemical.getRepresentations());
+            if (infoSlot == null) {
+                infoSlot = slot;
+            }
+        }
+        if (infoSlot != null) {
+            addRecipeTooltip(infoSlot, recipe);
         }
 
         if (!recipe.getItemOutputDefinition().isEmpty()) {
@@ -104,12 +116,15 @@ public class ReactionChamberRecipeCategory extends HolderRecipeCategory<Reaction
     }
 
     /**
-     * Adds a note on the item input that the reaction only runs while the chamber is within the recipe's temperature
-     * window, in Kelvin.
+     * Adds a note on the recipe's first input that the reaction only runs while the chamber is within the recipe's temperature
+     * window (in Kelvin), and how many ticks the chamber waits between two of its operations.
      */
-    private static void addTemperatureTooltip(IRecipeSlotBuilder slotBuilder, ReactionChamberRecipe recipe) {
-        slotBuilder.addRichTooltipCallback((slotView, tooltip) -> tooltip.add(ModLang.TEMPERATURE_RANGE.translate(
-              MekanismUtils.getTemperatureDisplay(recipe.getMinTemperature(), TemperatureUnit.KELVIN, true),
-              MekanismUtils.getTemperatureDisplay(recipe.getMaxTemperature(), TemperatureUnit.KELVIN, true))));
+    private static void addRecipeTooltip(IRecipeSlotBuilder slotBuilder, ReactionChamberRecipe recipe) {
+        slotBuilder.addRichTooltipCallback((slotView, tooltip) -> {
+            tooltip.add(ModLang.TEMPERATURE_RANGE.translate(
+                  MekanismUtils.getTemperatureDisplay(recipe.getMinTemperature(), TemperatureUnit.KELVIN, true),
+                  MekanismUtils.getTemperatureDisplay(recipe.getMaxTemperature(), TemperatureUnit.KELVIN, true)));
+            tooltip.add(ModLang.REACTION_DURATION.translate(recipe.getDuration()));
+        });
     }
 }

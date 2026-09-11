@@ -22,12 +22,13 @@ public class BasicReactionChamberRecipe extends ReactionChamberRecipe {
     private final List<ChemicalStackIngredient> chemicalOutputs;
     private final double minTemperature;
     private final double maxTemperature;
+    private final int duration;
 
     public BasicReactionChamberRecipe(Optional<ItemStackIngredient> itemInput,
           List<FluidStackIngredient> fluidInputs, List<ChemicalStackIngredient> chemicalInputs,
           Optional<ItemStackIngredient> itemOutput,
           List<FluidStackIngredient> fluidOutputs, List<ChemicalStackIngredient> chemicalOutputs,
-          double minTemperature, double maxTemperature) {
+          double minTemperature, double maxTemperature, int duration) {
         Objects.requireNonNull(itemInput, "Item input cannot be null.");
         Objects.requireNonNull(fluidInputs, "Fluid inputs cannot be null.");
         Objects.requireNonNull(chemicalInputs, "Chemical inputs cannot be null.");
@@ -47,6 +48,9 @@ public class BasicReactionChamberRecipe extends ReactionChamberRecipe {
         if (maxTemperature < minTemperature) {
             throw new IllegalArgumentException("Max temperature must be at least the min temperature.");
         }
+        if (duration < 1) {
+            throw new IllegalArgumentException("Duration must be at least one tick.");
+        }
         this.itemInput = itemInput;
         this.fluidInputs = List.copyOf(fluidInputs);
         this.chemicalInputs = List.copyOf(chemicalInputs);
@@ -55,6 +59,7 @@ public class BasicReactionChamberRecipe extends ReactionChamberRecipe {
         this.chemicalOutputs = List.copyOf(chemicalOutputs);
         this.minTemperature = minTemperature;
         this.maxTemperature = maxTemperature;
+        this.duration = duration;
     }
 
     @Override
@@ -98,6 +103,11 @@ public class BasicReactionChamberRecipe extends ReactionChamberRecipe {
     }
 
     @Override
+    public int getDuration() {
+        return duration;
+    }
+
+    @Override
     public RecipeSerializer<BasicReactionChamberRecipe> getSerializer() {
         return ModRecipeSerializers.REACTION.get();
     }
@@ -112,6 +122,7 @@ public class BasicReactionChamberRecipe extends ReactionChamberRecipe {
         BasicReactionChamberRecipe other = (BasicReactionChamberRecipe) o;
         return Double.compare(minTemperature, other.minTemperature) == 0
               && Double.compare(maxTemperature, other.maxTemperature) == 0
+              && duration == other.duration
               && itemInput.equals(other.itemInput)
               && fluidInputs.equals(other.fluidInputs)
               && chemicalInputs.equals(other.chemicalInputs)
@@ -130,6 +141,7 @@ public class BasicReactionChamberRecipe extends ReactionChamberRecipe {
         result = 31 * result + chemicalOutputs.hashCode();
         result = 31 * result + Double.hashCode(minTemperature);
         result = 31 * result + Double.hashCode(maxTemperature);
+        result = 31 * result + duration;
         return result;
     }
 }

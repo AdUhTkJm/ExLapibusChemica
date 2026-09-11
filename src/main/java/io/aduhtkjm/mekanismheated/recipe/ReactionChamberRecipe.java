@@ -32,7 +32,8 @@ import java.util.function.Predicate;
  * {@link #getFluidOutputs()} and {@link #getChemicalOutputs()}).
  *
  * <p>A recipe also carries a {@linkplain #getMinTemperature() minimum} and {@linkplain #getMaxTemperature() maximum}
- * temperature (Kelvin) it can run at; see {@link #temperatureAllows(double)}.
+ * temperature (Kelvin) it can run at (see {@link #temperatureAllows(double)}), and a {@linkplain #getDuration() duration}
+ * in ticks that the machine running it has to wait between two operations.
  */
 @NonnullDefault
 public abstract class ReactionChamberRecipe extends MekanismRecipe<ReactionChamberRecipeInput> {
@@ -76,6 +77,15 @@ public abstract class ReactionChamberRecipe extends MekanismRecipe<ReactionChamb
      * @return The maximum temperature (Kelvin) at which this recipe can run.
      */
     public abstract double getMaxTemperature();
+
+    /**
+     * The number of ticks the machine running this recipe has to wait after one operation before it may run the same recipe
+     * again. This is a cooldown rather than a processing time: an operation consumes its inputs and produces its outputs in
+     * a single tick, and this value only spaces successive operations of the recipe apart.
+     *
+     * @return The number of ticks between two operations of this recipe; always at least one.
+     */
+    public abstract int getDuration();
 
     public final boolean hasItemInput() {
         return getItemInput().isPresent();
