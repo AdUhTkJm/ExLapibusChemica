@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -183,7 +184,7 @@ public final class UnstableLavaVariant {
     }
 
     private static LiquidBlock createBlock(Fluid source) {
-        return new LiquidBlock(source, BlockBehaviour.Properties.of()
+        return new LiquidBlock((FlowingFluid) source, BlockBehaviour.Properties.of()
               //Same block properties as vanilla lava, including random ticks so LavaFluid#randomTick can spread fire.
               .mapColor(MapColor.FIRE)
               .replaceable()

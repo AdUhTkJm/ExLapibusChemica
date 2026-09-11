@@ -8,6 +8,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.LavaFluid;
 import net.neoforged.neoforge.fluids.FluidType;
+import org.lwjgl.system.NonnullDefault;
 
 /**
  * The fluid implementation behind "unstable lava", the fluid that ambient melting turns blocks into.
@@ -27,6 +28,7 @@ import net.neoforged.neoforge.fluids.FluidType;
  * cover it; the entity damage/burning that lava normally applies through that check is reproduced by
  * {@code MoltenFluidHandler}.
  */
+@NonnullDefault
 public abstract class UnstableLavaFluid extends LavaFluid {
 
     private final UnstableLavaVariant variant;

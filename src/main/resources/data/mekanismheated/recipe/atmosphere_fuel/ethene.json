@@ -2,7 +2,7 @@
   "type": "mekanismheated:atmosphere_fuel",
   "gas_input": {
     "chemical": "mekanism:ethene",
-    "amount": 100
+    "amount": 80
   },
-  "reduction": 2000
+  "reduction": 25000
 }

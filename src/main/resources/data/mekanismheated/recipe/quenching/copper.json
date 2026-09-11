@@ -1,0 +1,15 @@
+{
+  "type": "mekanismheated:quenching",
+  "input": {
+    "tag": "c:raw_materials/copper",
+    "count": 1
+  },
+  "fluid_input": {
+    "fluid": "mekanismheated:unstable_lava",
+    "amount": 900
+  },
+  "output": {
+    "fluid": "mekanismheated:unstable_lava_copper",
+    "amount": 900
+  }
+}
