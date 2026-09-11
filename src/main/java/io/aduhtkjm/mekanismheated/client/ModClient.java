@@ -15,6 +15,7 @@ import io.aduhtkjm.mekanismheated.client.renderer.TileEntityHeatSmelterRenderer;
 import io.aduhtkjm.mekanismheated.client.renderer.TileEntityReactionChamberRenderer;
 import io.aduhtkjm.mekanismheated.client.renderer.TileEntityShakerRenderer;
 import io.aduhtkjm.mekanismheated.content.fusedpipe.FusedPipeConfig;
+import io.aduhtkjm.mekanismheated.content.unstablelava.UnstableLavaVariant;
 import io.aduhtkjm.mekanismheated.item.*;
 import io.aduhtkjm.mekanismheated.registries.ModBlocks;
 import io.aduhtkjm.mekanismheated.registries.ModContainerTypes;
@@ -49,8 +50,10 @@ public class ModClient {
     @SubscribeEvent
     public static void registerItemColorHandlers(RegisterColorHandlersEvent.Item event) {
         ClientRegistrationUtil.registerBucketColorHandler(event, ModFluids.FLUIDS);
-        //Unstable lava is registered outside of ModFluids.FLUIDS, so its bucket is coloured by hand.
-        event.register(new DynamicFluidContainerModel.Colors(), ModFluids.UNSTABLE_LAVA_BUCKET.get());
+        //Unstable lava is registered outside of ModFluids.FLUIDS, so its buckets are coloured by hand.
+        for (UnstableLavaVariant variant : ModFluids.UNSTABLE_LAVA_VARIANTS) {
+            event.register(new DynamicFluidContainerModel.Colors(), variant.bucket().get());
+        }
 
         ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemCuODust.TINT : -1, ModItems.CUO_DUST);
         ClientRegistrationUtil.registerItemColorHandler(event, (stack, tintIndex) -> tintIndex == 1 ? ItemFe2O3Dust.TINT : -1, ModItems.FE2O3_DUST);
@@ -73,7 +76,9 @@ public class ModClient {
     @SubscribeEvent
     public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
         ClientRegistrationUtil.registerFluidExtensions(event, ModFluids.FLUIDS);
-        event.registerFluidType(new UnstableLavaClientExtensions(), ModFluids.UNSTABLE_LAVA_TYPE.get());
+        for (UnstableLavaVariant variant : ModFluids.UNSTABLE_LAVA_VARIANTS) {
+            event.registerFluidType(new UnstableLavaClientExtensions(variant), variant.fluidType().get());
+        }
         event.registerBlock(new FusedPipeBlockExtensions(), ModBlocks.FUSED_PIPE.get());
     }
 

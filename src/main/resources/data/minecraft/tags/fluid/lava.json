@@ -2,6 +2,14 @@
   "replace": false,
   "values": [
     "mekanismheated:unstable_lava",
-    "mekanismheated:flowing_unstable_lava"
+    "mekanismheated:flowing_unstable_lava",
+    "mekanismheated:unstable_lava_iron",
+    "mekanismheated:flowing_unstable_lava_iron",
+    "mekanismheated:unstable_lava_copper",
+    "mekanismheated:flowing_unstable_lava_copper",
+    "mekanismheated:unstable_lava_tin",
+    "mekanismheated:flowing_unstable_lava_tin",
+    "mekanismheated:unstable_lava_osmium",
+    "mekanismheated:flowing_unstable_lava_osmium"
   ]
 }

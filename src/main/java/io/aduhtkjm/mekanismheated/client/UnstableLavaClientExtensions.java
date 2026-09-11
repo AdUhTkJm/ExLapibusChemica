@@ -2,7 +2,7 @@ package io.aduhtkjm.mekanismheated.client;
 
 import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.aduhtkjm.mekanismheated.registries.ModFluids;
+import io.aduhtkjm.mekanismheated.content.unstablelava.UnstableLavaVariant;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -14,20 +14,27 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 /**
- * Client rendering for unstable lava: vanilla's lava textures (still and flowing) with an orange tint, plus
- * lava-ish fog. Modelled on the extension Mekanism registers for its own fluids; it is registered by hand in
- * {@link ModClient} because unstable lava is registered outside of Mekanism's {@code FluidDeferredRegister}.
+ * Client rendering for one unstable lava variant: vanilla's lava textures (still and flowing) tinted with the
+ * variant's tint, plus lava-ish fog. Modelled on the extension Mekanism registers for its own fluids; one is
+ * registered per variant by hand in {@link ModClient} because unstable lava is registered outside of Mekanism's
+ * {@code FluidDeferredRegister}.
  */
 public class UnstableLavaClientExtensions implements IClientFluidTypeExtensions {
 
+    private final UnstableLavaVariant variant;
+
+    public UnstableLavaClientExtensions(UnstableLavaVariant variant) {
+        this.variant = variant;
+    }
+
     @Override
     public ResourceLocation getStillTexture() {
-        return ModFluids.UNSTABLE_LAVA_STILL_TEXTURE;
+        return UnstableLavaVariant.STILL_TEXTURE;
     }
 
     @Override
     public ResourceLocation getFlowingTexture() {
-        return ModFluids.UNSTABLE_LAVA_FLOWING_TEXTURE;
+        return UnstableLavaVariant.FLOWING_TEXTURE;
     }
 
     @Override
@@ -43,12 +50,12 @@ public class UnstableLavaClientExtensions implements IClientFluidTypeExtensions 
 
     @Override
     public int getTintColor() {
-        return ModFluids.UNSTABLE_LAVA_TINT;
+        return variant.tint();
     }
 
     @Override
     public Vector3f modifyFogColor(Camera camera, float partialTick, ClientLevel level, int renderDistance, float darkenWorldAmount, Vector3f fluidFogColor) {
-        int tint = ModFluids.UNSTABLE_LAVA_TINT;
+        int tint = variant.tint();
         return new Vector3f(FastColor.ARGB32.red(tint) / 255F, FastColor.ARGB32.green(tint) / 255F, FastColor.ARGB32.blue(tint) / 255F);
     }
 

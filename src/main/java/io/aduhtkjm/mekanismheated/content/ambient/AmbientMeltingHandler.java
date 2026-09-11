@@ -1,6 +1,7 @@
 package io.aduhtkjm.mekanismheated.content.ambient;
 
 import io.aduhtkjm.mekanismheated.Config;
+import io.aduhtkjm.mekanismheated.content.unstablelava.UnstableLavaVariant;
 import io.aduhtkjm.mekanismheated.registries.ModFluids;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -18,7 +19,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -133,28 +133,27 @@ public final class AmbientMeltingHandler {
     }
 
     /**
-     * Promotes flowing unstable lava back to source blocks so the melted lava does not drain away.
+     * Promotes flowing unstable lava back to source blocks so the melted lava does not drain away. Applies to
+     * every unstable lava variant, not just plain unstable lava, so metals melted into it keep their flavour.
      */
     private static void solidifyFlowingLava(ServerLevel level, ChunkPos chunkPos, int samples, RandomSource random) {
-        Fluid sourceFluid = ModFluids.UNSTABLE_LAVA.get();
-        Fluid flowingFluid = ModFluids.FLOWING_UNSTABLE_LAVA.get();
-        BlockState sourceState = ModFluids.UNSTABLE_LAVA_BLOCK.get().defaultBlockState();
         for (int i = 0; i < samples; i++) {
             BlockPos pos = randomPosition(level, chunkPos, random);
             FluidState fluid = level.getFluidState(pos);
-            if (fluid.getType() != sourceFluid && fluid.getType() != flowingFluid) {
-                continue;
-            }
             if (fluid.isSource()) {
-                //Already a source block.
+                //Already a source block, so there is nothing to promote.
                 continue;
             }
-            level.setBlock(pos, sourceState, Block.UPDATE_ALL);
+            UnstableLavaVariant variant = ModFluids.unstableLavaVariant(fluid.getType());
+            if (variant == null) {
+                continue;
+            }
+            level.setBlock(pos, variant.block().get().defaultBlockState(), Block.UPDATE_ALL);
         }
     }
 
     private static void meltBlocks(ServerLevel level, ChunkPos chunkPos, int samples, BlockMeltFilter filter, RandomSource random) {
-        BlockState lava = ModFluids.UNSTABLE_LAVA_BLOCK.get().defaultBlockState();
+        BlockState lava = ModFluids.UNSTABLE_LAVA.block().get().defaultBlockState();
         for (int i = 0; i < samples; i++) {
             BlockPos pos = randomPosition(level, chunkPos, random);
             if (!filter.test(level.getBlockState(pos))) {

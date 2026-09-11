@@ -1,5 +1,6 @@
 package io.aduhtkjm.mekanismheated.content.moltenfluid;
 
+import io.aduhtkjm.mekanismheated.content.unstablelava.UnstableLavaVariant;
 import io.aduhtkjm.mekanismheated.registries.ModFluids;
 import java.util.HashSet;
 import java.util.Set;
@@ -52,9 +53,11 @@ public final class MoltenFluidHandler {
         add(set, ModFluids.MOLTEN_THERMOENERGETIC_ALLOY);
         add(set, ModFluids.MOLTEN_INFUSED_ALLOY);
         add(set, ModFluids.MOLTEN_REINFORCED_ALLOY);
-        //Unstable lava is registered outside of FluidDeferredRegister, so it is added directly.
-        set.add(ModFluids.UNSTABLE_LAVA.get());
-        set.add(ModFluids.FLOWING_UNSTABLE_LAVA.get());
+        //Unstable lava is not registered through FluidDeferredRegister, so its variants are added directly.
+        for (UnstableLavaVariant variant : ModFluids.UNSTABLE_LAVA_VARIANTS) {
+            set.add(variant.source().get());
+            set.add(variant.flowing().get());
+        }
         moltenFluids = Set.copyOf(set);
     }
 

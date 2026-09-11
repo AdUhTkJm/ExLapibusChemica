@@ -1,6 +1,7 @@
 package io.aduhtkjm.mekanismheated.registries;
 
 import io.aduhtkjm.mekanismheated.Mod;
+import io.aduhtkjm.mekanismheated.content.unstablelava.UnstableLavaVariant;
 import io.aduhtkjm.mekanismheated.item.*;
 import mekanism.common.registration.impl.ItemDeferredRegister;
 import mekanism.common.registration.impl.ItemRegistryObject;
@@ -66,6 +67,8 @@ public class ModItems {
         output.accept(ModFluids.MOLTEN_THERMOENERGETIC_ALLOY.getBucket());
         output.accept(ModFluids.MOLTEN_INFUSED_ALLOY.getBucket());
         output.accept(ModFluids.MOLTEN_REINFORCED_ALLOY.getBucket());
-        output.accept(ModFluids.UNSTABLE_LAVA_BUCKET.get());
+        for (UnstableLavaVariant variant : ModFluids.UNSTABLE_LAVA_VARIANTS) {
+            output.accept(variant.bucket().get());
+        }
     }
 }

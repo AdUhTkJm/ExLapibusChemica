@@ -1,6 +1,5 @@
 package io.aduhtkjm.mekanismheated.content.unstablelava;
 
-import io.aduhtkjm.mekanismheated.registries.ModFluids;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,43 +20,61 @@ import net.neoforged.neoforge.fluids.FluidType;
  * at our own registrations, along with {@link #getFluidType()} so the fluid reports our custom
  * {@link FluidType} instead of NeoForge's vanilla lava type.
  * <p>
+ * All of the unstable lava flavours (plain, iron, copper, ...) share this class and differ only in the
+ * {@link UnstableLavaVariant} they are bound to, which supplies the fluid type, textures/tint, block and bucket.
+ * <p>
  * Because the fluid type is our own rather than {@code NeoForgeMod.LAVA_TYPE}, {@code Entity#isInLava} does not
  * cover it; the entity damage/burning that lava normally applies through that check is reproduced by
  * {@code MoltenFluidHandler}.
  */
 public abstract class UnstableLavaFluid extends LavaFluid {
 
+    private final UnstableLavaVariant variant;
+
+    protected UnstableLavaFluid(UnstableLavaVariant variant) {
+        this.variant = variant;
+    }
+
+    /** The variant this fluid belongs to. */
+    public UnstableLavaVariant getVariant() {
+        return variant;
+    }
+
     @Override
     public FluidType getFluidType() {
-        return ModFluids.UNSTABLE_LAVA_TYPE.get();
+        return variant.fluidType().get();
     }
 
     @Override
     public Fluid getFlowing() {
-        return ModFluids.FLOWING_UNSTABLE_LAVA.get();
+        return variant.flowing().get();
     }
 
     @Override
     public Fluid getSource() {
-        return ModFluids.UNSTABLE_LAVA.get();
+        return variant.source().get();
     }
 
     @Override
     public Item getBucket() {
-        return ModFluids.UNSTABLE_LAVA_BUCKET.get();
+        return variant.bucket().get();
     }
 
     @Override
     public boolean isSame(Fluid fluid) {
-        return fluid == ModFluids.UNSTABLE_LAVA.get() || fluid == ModFluids.FLOWING_UNSTABLE_LAVA.get();
+        return variant.is(fluid);
     }
 
     @Override
     public BlockState createLegacyBlock(FluidState state) {
-        return ModFluids.UNSTABLE_LAVA_BLOCK.get().defaultBlockState().setValue(LiquidBlock.LEVEL, getLegacyLevel(state));
+        return variant.block().get().defaultBlockState().setValue(LiquidBlock.LEVEL, getLegacyLevel(state));
     }
 
     public static class Source extends UnstableLavaFluid {
+
+        public Source(UnstableLavaVariant variant) {
+            super(variant);
+        }
 
         @Override
         public int getAmount(FluidState state) {
@@ -71,6 +88,10 @@ public abstract class UnstableLavaFluid extends LavaFluid {
     }
 
     public static class Flowing extends UnstableLavaFluid {
+
+        public Flowing(UnstableLavaVariant variant) {
+            super(variant);
+        }
 
         @Override
         protected void createFluidStateDefinition(StateDefinition.Builder<Fluid, FluidState> builder) {

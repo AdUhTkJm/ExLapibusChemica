@@ -10,26 +10,10 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.Contract;
 import org.lwjgl.system.NonnullDefault;
 
-/**
- * Input: ItemStack (required)
- * <br>
- * Input: FluidStack (required)
- * <br>
- * Output: single FluidStack
- *
- * <p>Both inputs are required: a quenching recipe only runs while the machine's item slot holds a matching item
- * <em>and</em> its input tank holds a matching amount of fluid. Both are consumed when the recipe finishes.</p>
- */
 @NonnullDefault
 public abstract class QuenchingRecipe extends MekanismRecipe<QuenchingRecipeInput> {
-
-    /**
-     * Checks if this recipe matches the given item and fluid.
-     *
-     * @param itemStack  Item being quenched.
-     * @param fluidStack Contents of the quenching chamber's input tank.
-     */
-    public abstract boolean test(ItemStack itemStack, FluidStack fluidStack);
+    
+    public abstract boolean test(ItemStack item, FluidStack second);
 
     @Override
     public boolean matches(QuenchingRecipeInput input, Level level) {

@@ -167,7 +167,7 @@ public abstract class TileEntityMekanism extends CapabilityTileEntity implements
       ITierUpgradable,              // tier upgrades (basic -> advanced -> ...)
       IComparatorSupport,           // comparator output
       ITrackableContainer,          // addContainerTrackers(MekanismContainer)
-      IMekanismFluidHandler,        // fluid handler family
+      IMekanismFluidHandler,        // second handler family
       IMekanismStrictEnergyHandler, // energy handler family
       ITileHeatHandler,             // heat handler family + simulate() (section 4)
       IMekanismChemicalHandler,     // chemical handler family

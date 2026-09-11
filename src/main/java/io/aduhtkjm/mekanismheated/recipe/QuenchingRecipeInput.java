@@ -3,6 +3,7 @@ package io.aduhtkjm.mekanismheated.recipe;
 import mekanism.api.annotations.NothingNullByDefault;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
+import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**

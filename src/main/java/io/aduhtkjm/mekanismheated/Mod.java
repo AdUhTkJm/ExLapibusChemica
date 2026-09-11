@@ -56,10 +56,7 @@ public class Mod {
         ModBlocks.BLOCKS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModFluids.FLUIDS.register(modEventBus);
-        ModFluids.UNSTABLE_LAVA_TYPES.register(modEventBus);
-        ModFluids.UNSTABLE_LAVA_FLUID_REGISTER.register(modEventBus);
-        ModFluids.UNSTABLE_LAVA_BLOCK_REGISTER.register(modEventBus);
-        ModFluids.UNSTABLE_LAVA_ITEM_REGISTER.register(modEventBus);
+        ModFluids.registerUnstableLavaRegisters(modEventBus);
         ModTileEntityTypes.TILE_ENTITY_TYPES.register(modEventBus);
         ModContainerTypes.CONTAINER_TYPES.register(modEventBus);
         ModChemicals.CHEMICALS.register(modEventBus);
