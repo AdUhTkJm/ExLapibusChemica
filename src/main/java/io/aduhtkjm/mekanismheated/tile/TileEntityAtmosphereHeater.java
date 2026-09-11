@@ -69,6 +69,9 @@ public class TileEntityAtmosphereHeater extends TileEntityConfigurableMachine {
     /** Energy-consumption reduction (FE/t) applied during the last completed work cycle, for display/debug purposes. */
     private long reduction;
 
+    private static final int INTERVAL = Config.AtmosphereHeater.WORK_INTERVAL.get();
+    private static final long BASE_COST = Config.AtmosphereHeater.ENERGY_PER_TICK.get();
+
     public TileEntityAtmosphereHeater(BlockPos pos, BlockState state) {
         super(ModBlocks.ATMOSPHERE_HEATER, pos, state);
         configComponent.setupInputConfig(TransmissionType.ITEM, inputSlot);
@@ -97,7 +100,7 @@ public class TileEntityAtmosphereHeater extends TileEntityConfigurableMachine {
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener) {
         InventorySlotHelper builder = InventorySlotHelper.forSideWithConfig(this);
-        builder.addSlot(inputSlot = InputInventorySlot.at(this::isValidInputItem, listener, 26, 35));
+        builder.addSlot(inputSlot = InputInventorySlot.at(this::isValidInputItem, listener, 75, 40));
         return builder.build();
     }
 
@@ -147,16 +150,13 @@ public class TileEntityAtmosphereHeater extends TileEntityConfigurableMachine {
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
         if (level instanceof ServerLevel serverLevel) {
-            if (++tickCounter >= Config.AtmosphereHeater.WORK_INTERVAL.get()) {
+            if (++tickCounter >= INTERVAL) {
                 tickCounter = 0;
                 setActive(doWork(serverLevel));
             }
         }
         return sendUpdatePacket;
     }
-
-    private static final int INTERVAL = Config.AtmosphereHeater.WORK_INTERVAL.get();
-    private static final long BASE_COST = Config.AtmosphereHeater.ENERGY_PER_TICK.get();
 
     public long getEnergyConsumption() {
         return Math.max(0, BASE_COST - getReduction());

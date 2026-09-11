@@ -43,10 +43,7 @@ public enum AtmosphereHeaterMekDataProvider implements IServerDataProvider<Block
         if (!item.isEmpty()) {
             mhData.put("item", item.save(accessor.getLevel().registryAccess()));
         }
-        //Current effective energy consumption in J/t: the base consumption minus the fuel's reduction, floored at zero
-        long consumptionJoules = heater.getEnergyContainer().getEnergyPerTick();
-        long reductionJoules = Math.round(heater.getReduction() * MekanismConfig.general.forgeConversionRate.get());
-        mhData.putLong("consumption", Math.max(0, consumptionJoules - reductionJoules));
+        mhData.putLong("consumption", heater.getEnergyConsumption());
         data.put(KEY, mhData);
     }
 }

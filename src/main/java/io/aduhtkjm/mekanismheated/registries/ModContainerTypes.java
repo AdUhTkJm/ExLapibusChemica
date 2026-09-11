@@ -47,9 +47,13 @@ public class ModContainerTypes {
     public static final ContainerTypeRegistryObject<MekanismTileContainer<TileEntityReactionChamber>> REACTION_CHAMBER =
           CONTAINER_TYPES.register(ModBlocks.REACTION_CHAMBER, TileEntityReactionChamber.class);
 
+    //Note: The screens for both of these are 5 pixels taller than the default (166), as all of their machine
+    // contents are drawn 5 pixels lower. The player inventory has to be shifted down to match, which must be done
+    // here rather than in the screen: GuiMekanism renders a GuiSlot for every menu slot based on the slot's own x/y
+    // (see MekanismContainer#addInventorySlots, which positions the player slots using getInventoryYOffset).
     public static final ContainerTypeRegistryObject<MekanismTileContainer<TileEntityQuenchingEnrichmentChamber>> QUENCHING_ENRICHMENT_CHAMBER =
-          CONTAINER_TYPES.register(ModBlocks.QUENCHING_ENRICHMENT_CHAMBER, TileEntityQuenchingEnrichmentChamber.class);
+          CONTAINER_TYPES.custom(ModBlocks.QUENCHING_ENRICHMENT_CHAMBER, TileEntityQuenchingEnrichmentChamber.class).offset(0, 5).build();
 
     public static final ContainerTypeRegistryObject<MekanismTileContainer<TileEntityAtmosphereHeater>> ATMOSPHERE_HEATER =
-          CONTAINER_TYPES.register(ModBlocks.ATMOSPHERE_HEATER, TileEntityAtmosphereHeater.class);
+          CONTAINER_TYPES.custom(ModBlocks.ATMOSPHERE_HEATER, TileEntityAtmosphereHeater.class).offset(0, 5).build();
 }

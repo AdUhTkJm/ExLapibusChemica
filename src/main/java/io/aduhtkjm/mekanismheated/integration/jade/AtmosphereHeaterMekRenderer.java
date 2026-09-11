@@ -76,9 +76,9 @@ public enum AtmosphereHeaterMekRenderer implements IComponentProvider<BlockAcces
 
         //Current energy consumption
         if (mhData.contains("consumption", Tag.TAG_LONG)) {
-            long consumptionJoules = mhData.getLong("consumption");
+            long consumption = mhData.getLong("consumption");
             tooltip.add(new TextElement(ModLang.ATMOSPHERE_HEATER_CONSUMPTION.translate(
-                  EnergyDisplay.of(consumptionJoules).getTextComponent())));
+                  EnergyDisplay.of(consumption).getTextComponent())));
         }
     }
 

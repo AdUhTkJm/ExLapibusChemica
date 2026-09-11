@@ -78,7 +78,6 @@ public class AtmosphereFuelRecipeCategory extends HolderRecipeCategory<Atmospher
      * Formats the recipe's energy-consumption reduction (given in FE/t) with Mekanism's energy display.
      */
     private static Component getReductionText(AtmosphereFuelRecipe recipe) {
-        long reductionJoules = Math.round(recipe.getReduction() * MekanismConfig.general.forgeConversionRate.get());
-        return ModLang.ATMOSPHERE_HEATER_REDUCTION.translate(EnergyDisplay.of(reductionJoules));
+        return ModLang.ATMOSPHERE_HEATER_REDUCTION.translate(EnergyDisplay.of(recipe.getReduction()));
     }
 }

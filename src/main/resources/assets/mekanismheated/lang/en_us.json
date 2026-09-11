@@ -74,7 +74,7 @@
   "description.mekanismheated.thermal_fractionation_casing": "A casing used in the structure of a Thermal Fractionation Tower.",
   "description.mekanismheated.thermal_fractionation_controller": "The controller of a Thermal Fractionation Tower. Place it on the frame of the tower to be able to control it.",
   "description.mekanismheated.thermal_fractionation_valve": "A valve used to insert or extract fluids from a Thermal Fractionation Tower.",
-  "gui.mekanismheated.atmosphere_heater.reduction": "Energy reduction: %1$s/t",
+  "gui.mekanismheated.atmosphere_heater.reduction": "Reduced: %1$s/t",
   "gui.mekanismheated.atmosphere_heater.consumption": "Consuming: %1$s/t",
   "gui.mekanismheated.chunk_ambient": "Chunk Ambient: %1$s",
   "gui.mekanismheated.chunk_delta": "Chunk Delta: %1$s",
