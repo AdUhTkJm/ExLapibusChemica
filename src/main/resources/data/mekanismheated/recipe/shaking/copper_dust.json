@@ -5,10 +5,10 @@
     "count": 1
   },
   "output": [{
-    "id": "mekanism:obsidian_dust",
+    "id": "mekanism:dust_obsidian",
     "count": 1
   }, {
-    "id": "mekanism:copper_shard",
+    "id": "mekanism:shard_copper",
     "count": 1
   }]
 }

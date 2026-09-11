@@ -530,9 +530,7 @@ public class TileEntityFusedPipe extends CapabilityTileEntity implements ProxyCo
         if (enabled == 0) {
             return;
         }
-        //A single fused pipe provides several functions, so an alloy converts fewer consecutive
-        //pipes than a vanilla single-function transmitter would (ceiling of 8 / enabled functions).
-        int limit = (int) Math.ceil(8.0 / enabled);
+        int limit = 8;
         double previousHeatCapacity = network.getTotalHeatCapacity();
         List<FusedPipeNode> candidates = new ArrayList<>(network.getNodes());
         candidates.sort(Comparator.comparingDouble(node -> node.getBlockPos().distSqr(getBlockPos())));

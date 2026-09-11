@@ -262,7 +262,7 @@ public class Config {
             .defineInRange("workInterval", 40, 1, Integer.MAX_VALUE);
         AtmosphereHeater.ENERGY_PER_TICK = BUILDER
             .comment("Base energy consumed per tick of a work cycle in Joules. Fuel inputs subtract from this per work cycle; the consumption never goes below zero, and any fuel reducing it beyond zero is still consumed in full.")
-            .defineInRange("energyPerTick", 5_000, 0, Long.MAX_VALUE);
+            .defineInRange("energyPerTick", 50_000, 0, Long.MAX_VALUE);
         AtmosphereHeater.MAX_ENERGY = BUILDER
             .comment("Maximum amount of energy the atmosphere heater can hold in Joules.")
             .defineInRange("maxEnergy", 1_000_000, 0, Long.MAX_VALUE);
