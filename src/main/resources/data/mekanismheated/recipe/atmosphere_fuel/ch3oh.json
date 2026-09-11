@@ -1,8 +1,8 @@
 {
   "type": "mekanismheated:atmosphere_fuel",
   "gas_input": {
-    "chemical": "mekanismheated:methanol",
-    "amount": 100
+    "chemical": "mekanismheated:gas_methanol",
+    "amount": 50
   },
-  "reduction": 20000
+  "reduction": 30000
 }

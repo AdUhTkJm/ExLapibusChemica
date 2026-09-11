@@ -48,6 +48,7 @@
   "block.mekanismheated.wood_tar": "Wood Tar",
   "chemical.mekanismheated.carbon_monoxide": "Carbon Monoxide",
   "chemical.mekanismheated.nitrogen": "Nitrogen",
+  "chemical.mekanismheated.gas_methanol": "Methanol (Gas)",
   "config.jade.plugin_mekanismheated.fractionation_mek_data": "Fractionation Tower Storage Data",
   "config.jade.plugin_mekanismheated.fractionation_remover": "Remove Default Renderers for Fractionation Tower",
   "config.jade.plugin_mekanismheated.fused_pipe_mek_data": "Fused Pipe Storage Data",

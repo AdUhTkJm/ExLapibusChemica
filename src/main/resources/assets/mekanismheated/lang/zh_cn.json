@@ -48,6 +48,7 @@
   "block.mekanismheated.wood_tar": "木焦油",
   "chemical.mekanismheated.carbon_monoxide": "一氧化碳",
   "chemical.mekanismheated.nitrogen": "氮气",
+  "chemical.mekanismheated.gas_methanol": "气态甲醇",
   "config.jade.plugin_mekanismheated.fractionation_mek_data": "热分离塔存储数据",
   "config.jade.plugin_mekanismheated.fractionation_remover": "移除热分离塔的默认渲染器",
   "config.jade.plugin_mekanismheated.fused_pipe_mek_data": "融合管道存储数据",

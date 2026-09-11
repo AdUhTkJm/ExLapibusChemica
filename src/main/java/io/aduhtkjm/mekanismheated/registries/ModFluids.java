@@ -114,7 +114,7 @@ public class ModFluids {
     }
 
     /**
-     * @return the unstable lava variant the given fluid belongs to, or {@code null} if the fluid is not unstable
+     * @return the unstable lava variant  the given fluid belongs to, or {@code null} if the fluid is not unstable
      *       lava.
      */
     @Nullable
