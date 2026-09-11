@@ -18,6 +18,7 @@ import mekanism.client.recipe_viewer.type.IRecipeViewerRecipeType;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.registration.IModIngredientRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
@@ -35,6 +36,9 @@ import org.lwjgl.system.NonnullDefault;
  * JEI integration reusing Mekanism's recipe viewer framework (categories, catalysts, holder based recipe types). Our
  * recipes are fed straight from the vanilla recipe manager, as addons cannot create Mekanism's internal
  * {@code MekanismRecipeType} instances that the machines' {@code getRecipeType()} would normally return.
+ *
+ * <p>EMI skips the JEI plugins of every mod that ships an EMI plugin of its own, Mekanism included, so while EMI is
+ * installed we register Mekanism's chemical ingredient type ourselves. See {@link #registerIngredients}.</p>
  */
 @JeiPlugin
 @NonnullDefault
@@ -43,6 +47,21 @@ public class MekanismHeatedJEI implements IModPlugin {
     @Override
     public ResourceLocation getPluginUid() {
         return ResourceLocation.fromNamespaceAndPath(Mod.MODID, "jei_plugin");
+    }
+
+    @Override
+    public void registerIngredients(IModIngredientRegistration registry) {
+        if (MekanismJEI.shouldLoad()) {
+            //Mekanism's own JEI plugin registers its ingredient types for us
+            return;
+        }
+        //EMI skips every JEI plugin whose namespace belongs to a mod that has an EMI plugin (see EMI's PluginCallerMixin),
+        //and Mekanism ships MekanismEmi. So with EMI installed, JEI never learns about ChemicalStack, and every category
+        //showing one of our chemicals (the atmosphere heater's gas fuel, the reaction chamber's gas pools) fails with
+        //"Unknown ingredient type: class mekanism.api.chemical.ChemicalStack". Register the type in Mekanism's stead.
+        //Note: shouldLoad() mirrors the EMI check EMI itself uses, so the type is never registered twice.
+        //MekanismJEI keeps no state of its own, so instantiating it purely to reuse its registration logic is safe.
+        new MekanismJEI().registerIngredients(registry);
     }
 
     @Override
