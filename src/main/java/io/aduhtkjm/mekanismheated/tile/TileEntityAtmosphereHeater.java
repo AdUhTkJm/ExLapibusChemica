@@ -23,7 +23,6 @@ import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.capabilities.holder.slot.InventorySlotHelper;
-import mekanism.common.config.MekanismConfig;
 import mekanism.common.inventory.slot.InputInventorySlot;
 import mekanism.common.lib.transmitter.TransmissionType;
 import mekanism.common.tile.component.TileComponentEjector;
@@ -68,7 +67,7 @@ public class TileEntityAtmosphereHeater extends TileEntityConfigurableMachine {
     private int tickCounter;
 
     /** Energy-consumption reduction (FE/t) applied during the last completed work cycle, for display/debug purposes. */
-    private double lastReduction;
+    private long reduction;
 
     public TileEntityAtmosphereHeater(BlockPos pos, BlockState state) {
         super(ModBlocks.ATMOSPHERE_HEATER, pos, state);
@@ -156,6 +155,13 @@ public class TileEntityAtmosphereHeater extends TileEntityConfigurableMachine {
         return sendUpdatePacket;
     }
 
+    private static final int INTERVAL = Config.AtmosphereHeater.WORK_INTERVAL.get();
+    private static final long BASE_COST = Config.AtmosphereHeater.ENERGY_PER_TICK.get();
+
+    public long getEnergyConsumption() {
+        return Math.max(0, BASE_COST - getReduction());
+    }
+
     /**
      * Runs one work cycle: consumes all matching fuel, reduces the base energy cost by the fuel's total reduction
      * (floored at zero), extracts the energy and then warms the surrounding chunks' ambient temperature.
@@ -166,16 +172,12 @@ public class TileEntityAtmosphereHeater extends TileEntityConfigurableMachine {
         if (!canFunction()) {
             return false;
         }
-        int interval = Config.AtmosphereHeater.WORK_INTERVAL.get();
-        long baseCost = energyContainer.getEnergyPerTick() * interval;
         List<Runnable> fuelConsumers = new ArrayList<>();
-        double reduction = collectFuel(fuelConsumers);
-        lastReduction = reduction;
-        long reductionJoules = Math.round(reduction * MekanismConfig.general.forgeConversionRate.get());
-        long cost = Math.max(0, baseCost - reductionJoules);
+        reduction = collectFuel(fuelConsumers);
+        long cost = getEnergyConsumption();
         if (cost > 0 && energyContainer.getEnergy() < cost) {
             //Not enough energy to pay even the reduced cost; leave the fuel in place for the next cycle.
-            lastReduction = 0;
+            reduction = 0;
             return false;
         }
         if (cost > 0) {
@@ -194,8 +196,8 @@ public class TileEntityAtmosphereHeater extends TileEntityConfigurableMachine {
      *
      * @return the total energy-consumption reduction (in FE/t) the matched fuel provides
      */
-    private double collectFuel(List<Runnable> fuelConsumers) {
-        double reduction = 0;
+    private long collectFuel(List<Runnable> fuelConsumers) {
+        long reduction = 0;
         ItemStack item = inputSlot.getStack();
         if (!item.isEmpty()) {
             for (AtmosphereFuelRecipe recipe : getRecipes()) {
@@ -277,7 +279,7 @@ public class TileEntityAtmosphereHeater extends TileEntityConfigurableMachine {
     }
 
     /** Energy-consumption reduction (FE/t) applied during the last completed work cycle. */
-    public double getLastReduction() {
-        return lastReduction;
+    public long getReduction() {
+        return reduction;
     }
 }

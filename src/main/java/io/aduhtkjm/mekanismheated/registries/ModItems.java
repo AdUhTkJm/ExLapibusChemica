@@ -37,6 +37,7 @@ public class ModItems {
         output.accept(ModBlocks.CREATIVE_CHUNK_HEATER);
         output.accept(ModBlocks.COOLER);
         output.accept(ModBlocks.CONDENSER);
+        output.accept(ModBlocks.QUENCHING_ENRICHMENT_CHAMBER);
         output.accept(ModBlocks.REACTION_CHAMBER);
         output.accept(ModBlocks.ATMOSPHERE_HEATER);
 

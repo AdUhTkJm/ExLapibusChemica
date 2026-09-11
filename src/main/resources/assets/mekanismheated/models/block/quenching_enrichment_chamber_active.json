@@ -1,0 +1,6 @@
+{
+  "parent": "mekanismheated:block/quenching_enrichment_chamber",
+  "textures": {
+    "front": "mekanismheated:block/quenching_enrichment_chamber/front_active"
+  }
+}

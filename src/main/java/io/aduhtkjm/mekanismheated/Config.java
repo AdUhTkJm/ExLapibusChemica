@@ -42,6 +42,14 @@ public class Config {
         public static ModConfigSpec.DoubleValue INVERSE_INSULATION_COEFFICIENT;
     }
 
+    public static class QuenchingEnrichmentChamber {
+        public static ModConfigSpec.IntValue PROCESSING_TIME;
+        public static ModConfigSpec.LongValue ENERGY_PER_TICK;
+        public static ModConfigSpec.LongValue MAX_ENERGY;
+        public static ModConfigSpec.IntValue INPUT_FLUID_CAPACITY;
+        public static ModConfigSpec.IntValue OUTPUT_FLUID_CAPACITY;
+    }
+
     public static class Fractionation {
         public static ModConfigSpec.IntValue TOWER_MAX_HEIGHT;
         public static ModConfigSpec.IntValue FLUID_PER_LAYER;
@@ -164,6 +172,24 @@ public class Config {
             .defineInRange("inverseInsulationCoefficient", 5D, 1D, Double.MAX_VALUE);
         BUILDER.pop();
 
+        BUILDER.push("quenchingEnrichmentChamber");
+        QuenchingEnrichmentChamber.PROCESSING_TIME = BUILDER
+            .comment("Base number of game ticks the Quenching Enrichment Chamber takes to complete a recipe, before speed upgrades.")
+            .defineInRange("processingTime", 200, 1, Integer.MAX_VALUE);
+        QuenchingEnrichmentChamber.ENERGY_PER_TICK = BUILDER
+            .comment("Energy in Joules the Quenching Enrichment Chamber consumes per tick while processing a recipe. Each operation therefore costs energyPerTick * processingTime Joules.")
+            .defineInRange("energyPerTick", 375, 0, Long.MAX_VALUE);
+        QuenchingEnrichmentChamber.MAX_ENERGY = BUILDER
+            .comment("Maximum amount of energy in Joules the Quenching Enrichment Chamber can hold.")
+            .defineInRange("maxEnergy", 150_000, 0, Long.MAX_VALUE);
+        QuenchingEnrichmentChamber.INPUT_FLUID_CAPACITY = BUILDER
+            .comment("The capacity of the Quenching Enrichment Chamber's input fluid buffer, in buckets.")
+            .defineInRange("inputFluidCapacity", 10, 1, Integer.MAX_VALUE);
+        QuenchingEnrichmentChamber.OUTPUT_FLUID_CAPACITY = BUILDER
+            .comment("The capacity of the Quenching Enrichment Chamber's output fluid buffer, in buckets.")
+            .defineInRange("outputFluidCapacity", 10, 1, Integer.MAX_VALUE);
+        BUILDER.pop();
+
         BUILDER.push("fractionation");
         Fractionation.TOWER_MAX_HEIGHT = BUILDER
             .comment("The maximum height of fractionation tower.")
@@ -235,10 +261,10 @@ public class Config {
             .comment("How often (in game ticks) the atmosphere heater performs a work cycle: it consumes fuel and energy and then warms the surrounding chunks.")
             .defineInRange("workInterval", 40, 1, Integer.MAX_VALUE);
         AtmosphereHeater.ENERGY_PER_TICK = BUILDER
-            .comment("Base energy consumed per tick of a work cycle, in FE/RF per tick (converted to Mekanism Joules with Mekanism's FE conversion rate). Fuel inputs subtract from this per work cycle; the consumption never goes below zero, and any fuel reducing it beyond zero is still consumed in full.")
+            .comment("Base energy consumed per tick of a work cycle in Joules. Fuel inputs subtract from this per work cycle; the consumption never goes below zero, and any fuel reducing it beyond zero is still consumed in full.")
             .defineInRange("energyPerTick", 5_000, 0, Long.MAX_VALUE);
         AtmosphereHeater.MAX_ENERGY = BUILDER
-            .comment("Maximum amount of energy the atmosphere heater can hold, in FE/RF.")
+            .comment("Maximum amount of energy the atmosphere heater can hold in Joules.")
             .defineInRange("maxEnergy", 1_000_000, 0, Long.MAX_VALUE);
         AtmosphereHeater.BASE_TEMP_RISE = BUILDER
             .comment("Ambient temperature rise in Kelvin per work cycle at 0 K ambient, following dT = baseTempRise / 2^(T / temperatureScale) where T is the current effective ambient temperature in Kelvin.")

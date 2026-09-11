@@ -194,6 +194,20 @@ public class ModRecipeSerializers {
                        BasicCondenserRecipe::new
                  )));
 
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<BasicQuenchingRecipe>> QUENCHING =
+          RECIPE_SERIALIZERS.register("quenching", () -> new MekanismRecipeSerializer<>(
+                RecordCodecBuilder.mapCodec(instance -> instance.group(
+                      ItemStackIngredient.CODEC.fieldOf(SerializationConstants.INPUT).forGetter(BasicQuenchingRecipe::getItemInput),
+                      FluidStackIngredient.CODEC.fieldOf(SerializationConstants.FLUID_INPUT).forGetter(BasicQuenchingRecipe::getFluidInput),
+                      FluidStackIngredient.CODEC.fieldOf(SerializationConstants.OUTPUT).forGetter(BasicQuenchingRecipe::getOutputRaw)
+                ).apply(instance, BasicQuenchingRecipe::new)),
+                StreamCodec.composite(
+                      ItemStackIngredient.STREAM_CODEC, BasicQuenchingRecipe::getItemInput,
+                      FluidStackIngredient.STREAM_CODEC, BasicQuenchingRecipe::getFluidInput,
+                      FluidStackIngredient.STREAM_CODEC, BasicQuenchingRecipe::getOutputRaw,
+                      BasicQuenchingRecipe::new
+                )));
+
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<BasicReactionChamberRecipe>> REACTION =
           RECIPE_SERIALIZERS.register("reaction", () -> new MekanismRecipeSerializer<>(
                 RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -203,11 +217,11 @@ public class ModRecipeSerializers {
                             .forGetter(recipe -> new ReactionIngredientGroup(recipe.getItemOutputIngredient(), recipe.getFluidOutputIngredients(), recipe.getChemicalOutputIngredients())),
                       POSITIVE_TEMPERATURE_CODEC.fieldOf("min_temperature").forGetter(BasicReactionChamberRecipe::getMinTemperature),
                       POSITIVE_TEMPERATURE_CODEC.fieldOf("max_temperature").forGetter(BasicReactionChamberRecipe::getMaxTemperature),
-                      DURATION_CODEC.optionalFieldOf("duration")
+                      DURATION_CODEC.fieldOf("duration").forGetter(BasicReactionChamberRecipe::getDuration)
                 ).apply(instance, (inputs, outputs, minTemperature, maxTemperature, duration) -> new BasicReactionChamberRecipe(
                       inputs.item(), inputs.fluids(), inputs.chemicals(),
                       outputs.item(), outputs.fluids(), outputs.chemicals(),
-                      minTemperature, maxTemperature, duration.orElseGet(Config.ReactionChamber.DEFAULT_DURATION::get)
+                      minTemperature, maxTemperature, duration
                 ))),
                 StreamCodec.composite(
                       ReactionIngredientGroup.STREAM_CODEC,

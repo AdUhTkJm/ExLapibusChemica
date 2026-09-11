@@ -9,6 +9,7 @@ import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeHeatBlock;
 import io.aduhtkjm.mekanismheated.tile.TileEntityShaker;
 import io.aduhtkjm.mekanismheated.tile.TileEntityHeatSmelter;
 import io.aduhtkjm.mekanismheated.tile.TileEntityFusedPipe;
+import io.aduhtkjm.mekanismheated.tile.TileEntityQuenchingEnrichmentChamber;
 import io.aduhtkjm.mekanismheated.tile.TileEntityReactionChamber;
 import io.aduhtkjm.mekanismheated.tile.multiblock.TileEntityFractionationBlock;
 import io.aduhtkjm.mekanismheated.tile.multiblock.TileEntityThermalFractionationController;
@@ -98,6 +99,13 @@ public class ModTileEntityTypes {
           .serverTicker(TileEntityMekanism::tickServer)
           .withSimple(Capabilities.CONFIG_CARD)
           .build();
+
+    public static final TileEntityTypeRegistryObject<TileEntityQuenchingEnrichmentChamber> QUENCHING_ENRICHMENT_CHAMBER =
+          TILE_ENTITY_TYPES.mekBuilder(ModBlocks.QUENCHING_ENRICHMENT_CHAMBER, TileEntityQuenchingEnrichmentChamber::new)
+                .clientTicker(TileEntityMekanism::tickClient)
+                .serverTicker(TileEntityMekanism::tickServer)
+                .withSimple(Capabilities.CONFIG_CARD)
+                .build();
 
     public static final TileEntityTypeRegistryObject<TileEntityAtmosphereHeater> ATMOSPHERE_HEATER = TILE_ENTITY_TYPES
           .mekBuilder(ModBlocks.ATMOSPHERE_HEATER, TileEntityAtmosphereHeater::new)

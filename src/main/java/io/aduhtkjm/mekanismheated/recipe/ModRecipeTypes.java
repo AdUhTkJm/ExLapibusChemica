@@ -21,6 +21,7 @@ public class ModRecipeTypes {
     public static final ResourceLocation NAME_FRACTIONATING_PASSIVE = Mod.rl("fractionating_passive");
     public static final ResourceLocation NAME_ALLOYING = Mod.rl("alloying");
     public static final ResourceLocation NAME_CONDENSING = Mod.rl("condensing");
+    public static final ResourceLocation NAME_QUENCHING = Mod.rl("quenching");
     public static final ResourceLocation NAME_REACTION = Mod.rl("reaction");
     public static final ResourceLocation NAME_ATMOSPHERE_FUEL = Mod.rl("atmosphere_fuel");
 
@@ -44,6 +45,8 @@ public class ModRecipeTypes {
         RECIPE_TYPES.register(NAME_ALLOYING.getPath(), () -> new RecipeType<>() {});
     public static final DeferredHolder<RecipeType<?>, RecipeType<CondenserRecipe>> TYPE_CONDENSING =
         RECIPE_TYPES.register(NAME_CONDENSING.getPath(), () -> new RecipeType<>() {});
+    public static final DeferredHolder<RecipeType<?>, RecipeType<QuenchingRecipe>> TYPE_QUENCHING =
+        RECIPE_TYPES.register(NAME_QUENCHING.getPath(), () -> new RecipeType<>() {});
     public static final DeferredHolder<RecipeType<?>, RecipeType<ReactionChamberRecipe>> TYPE_REACTION =
         RECIPE_TYPES.register(NAME_REACTION.getPath(), () -> new RecipeType<>() {});
     public static final DeferredHolder<RecipeType<?>, RecipeType<AtmosphereFuelRecipe>> TYPE_ATMOSPHERE_FUEL =

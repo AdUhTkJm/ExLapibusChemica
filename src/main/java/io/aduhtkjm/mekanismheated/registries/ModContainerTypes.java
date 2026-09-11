@@ -7,6 +7,7 @@ import io.aduhtkjm.mekanismheated.tile.TileEntityCooler;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeChunkHeater;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeHeatBlock;
 import io.aduhtkjm.mekanismheated.tile.TileEntityReactionChamber;
+import io.aduhtkjm.mekanismheated.tile.TileEntityQuenchingEnrichmentChamber;
 import io.aduhtkjm.mekanismheated.tile.TileEntityShaker;
 import io.aduhtkjm.mekanismheated.tile.TileEntityHeatSmelter;
 import io.aduhtkjm.mekanismheated.tile.multiblock.TileEntityThermalFractionationController;
@@ -45,6 +46,9 @@ public class ModContainerTypes {
 
     public static final ContainerTypeRegistryObject<MekanismTileContainer<TileEntityReactionChamber>> REACTION_CHAMBER =
           CONTAINER_TYPES.register(ModBlocks.REACTION_CHAMBER, TileEntityReactionChamber.class);
+
+    public static final ContainerTypeRegistryObject<MekanismTileContainer<TileEntityQuenchingEnrichmentChamber>> QUENCHING_ENRICHMENT_CHAMBER =
+          CONTAINER_TYPES.register(ModBlocks.QUENCHING_ENRICHMENT_CHAMBER, TileEntityQuenchingEnrichmentChamber.class);
 
     public static final ContainerTypeRegistryObject<MekanismTileContainer<TileEntityAtmosphereHeater>> ATMOSPHERE_HEATER =
           CONTAINER_TYPES.register(ModBlocks.ATMOSPHERE_HEATER, TileEntityAtmosphereHeater.class);

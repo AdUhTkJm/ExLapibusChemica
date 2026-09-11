@@ -6,6 +6,7 @@ import io.aduhtkjm.mekanismheated.integration.jei.category.CondenserRecipeCatego
 import io.aduhtkjm.mekanismheated.integration.jei.category.FractionationRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.HeatedMeltingRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.HeatedSmeltingRecipeCategory;
+import io.aduhtkjm.mekanismheated.integration.jei.category.QuenchingRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.ReactionChamberRecipeCategory;
 import io.aduhtkjm.mekanismheated.integration.jei.category.ShakerRecipeCategory;
 import io.aduhtkjm.mekanismheated.recipe.FractionationRecipe;
@@ -72,6 +73,7 @@ public class MekanismHeatedJEI implements IModPlugin {
               new HeatedMeltingRecipeCategory(guiHelper, ModRecipeViewerTypes.HEATED_MELTING),
               new ShakerRecipeCategory(guiHelper, ModRecipeViewerTypes.SHAKING),
                new CondenserRecipeCategory(guiHelper, ModRecipeViewerTypes.CONDENSING),
+               new QuenchingRecipeCategory(guiHelper, ModRecipeViewerTypes.QUENCHING),
                new ReactionChamberRecipeCategory(guiHelper, ModRecipeViewerTypes.REACTION),
                new AtmosphereFuelRecipeCategory(guiHelper, ModRecipeViewerTypes.ATMOSPHERE_FUEL),
                new FractionationRecipeCategory(guiHelper, ModRecipeViewerTypes.FRACTIONATING));
@@ -83,6 +85,7 @@ public class MekanismHeatedJEI implements IModPlugin {
         registerRecipes(registry, ModRecipeViewerTypes.HEATED_MELTING, ModRecipeTypes.TYPE_HEATED_MELTING);
         registerRecipes(registry, ModRecipeViewerTypes.SHAKING, ModRecipeTypes.TYPE_SHAKING);
         registerRecipes(registry, ModRecipeViewerTypes.CONDENSING, ModRecipeTypes.TYPE_CONDENSING);
+        registerRecipes(registry, ModRecipeViewerTypes.QUENCHING, ModRecipeTypes.TYPE_QUENCHING);
         registerRecipes(registry, ModRecipeViewerTypes.REACTION, ModRecipeTypes.TYPE_REACTION);
         registerRecipes(registry, ModRecipeViewerTypes.ATMOSPHERE_FUEL, ModRecipeTypes.TYPE_ATMOSPHERE_FUEL);
         //Both fractionation recipe forms share one category, so their recipes are collected separately and merged.
@@ -92,7 +95,7 @@ public class MekanismHeatedJEI implements IModPlugin {
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registry) {
         CatalystRegistryHelper.register(registry, ModRecipeViewerTypes.HEATED_SMELTING, ModRecipeViewerTypes.HEATED_MELTING,
-              ModRecipeViewerTypes.SHAKING, ModRecipeViewerTypes.CONDENSING, ModRecipeViewerTypes.REACTION,
+              ModRecipeViewerTypes.SHAKING, ModRecipeViewerTypes.CONDENSING, ModRecipeViewerTypes.QUENCHING, ModRecipeViewerTypes.REACTION,
               ModRecipeViewerTypes.ATMOSPHERE_FUEL, ModRecipeViewerTypes.FRACTIONATING);
     }
 

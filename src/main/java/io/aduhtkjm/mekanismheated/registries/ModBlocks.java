@@ -11,6 +11,7 @@ import io.aduhtkjm.mekanismheated.block.creative.CreativeChunkHeaterBlock;
 import io.aduhtkjm.mekanismheated.block.creative.CreativeHeatBlock;
 import io.aduhtkjm.mekanismheated.block.fractionation.DistillationTrayBlock;
 import io.aduhtkjm.mekanismheated.block.heatsmelter.HeatSmelterBlock;
+import io.aduhtkjm.mekanismheated.block.quenchingenrichmentchamber.QuenchingEnrichmentChamberBlock;
 import io.aduhtkjm.mekanismheated.block.reactionchamber.ReactionChamberBlock;
 import io.aduhtkjm.mekanismheated.block.shaker.ShakerBlock;
 import io.aduhtkjm.mekanismheated.item.ItemBlockCooler;
@@ -23,6 +24,7 @@ import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeChunkHeater;
 import io.aduhtkjm.mekanismheated.tile.TileEntityCreativeHeatBlock;
 import io.aduhtkjm.mekanismheated.tile.TileEntityShaker;
 import io.aduhtkjm.mekanismheated.tile.TileEntityHeatSmelter;
+import io.aduhtkjm.mekanismheated.tile.TileEntityQuenchingEnrichmentChamber;
 import io.aduhtkjm.mekanismheated.tile.TileEntityReactionChamber;
 import io.aduhtkjm.mekanismheated.tile.multiblock.TileEntityFractionationBlock;
 import io.aduhtkjm.mekanismheated.tile.multiblock.TileEntityThermalFractionationController;
@@ -53,8 +55,6 @@ public class ModBlocks {
     private ModBlocks() {
     }
 
-    // 该注册器是 Mek 实现的，不是 NeoForge 自带的
-    // 它可以同时注册 Block 和其对应的 Item，比原版注册器方便
     public static final BlockDeferredRegister BLOCKS = new BlockDeferredRegister(Mod.MODID);
 
     public static final Machine<TileEntityHeatSmelter> HEAT_SMELTER_TYPE = MachineBuilder
@@ -157,6 +157,18 @@ public class ModBlocks {
 
     public static final BlockRegistryObject<CondenserBlock, ItemBlockTooltip<CondenserBlock>> CONDENSER =
           BLOCKS.register("condenser", () -> new CondenserBlock(CONDENSER_TYPE, BlockBehaviour.Properties.of().mapColor(MapColor.METAL)),
+                (block, properties) -> new ItemBlockTooltip<>(block, true, properties));
+
+    public static final Machine<TileEntityQuenchingEnrichmentChamber> QUENCHING_ENRICHMENT_CHAMBER_TYPE = MachineBuilder
+          .createMachine(() -> ModTileEntityTypes.QUENCHING_ENRICHMENT_CHAMBER, ModLang.DESCRIPTION_QUENCHING_ENRICHMENT_CHAMBER)
+          .withGui(() -> ModContainerTypes.QUENCHING_ENRICHMENT_CHAMBER)
+          .withEnergyConfig(() -> Config.QuenchingEnrichmentChamber.ENERGY_PER_TICK.get(), () -> Config.QuenchingEnrichmentChamber.MAX_ENERGY.get())
+          .with(AttributeSideConfig.create(TransmissionType.ITEM, TransmissionType.FLUID, TransmissionType.ENERGY))
+          .build();
+
+    public static final BlockRegistryObject<QuenchingEnrichmentChamberBlock, ItemBlockTooltip<QuenchingEnrichmentChamberBlock>> QUENCHING_ENRICHMENT_CHAMBER =
+          BLOCKS.register("quenching_enrichment_chamber",
+                () -> new QuenchingEnrichmentChamberBlock(QUENCHING_ENRICHMENT_CHAMBER_TYPE, BlockBehaviour.Properties.of().mapColor(MapColor.METAL)),
                 (block, properties) -> new ItemBlockTooltip<>(block, true, properties));
 
     public static final Machine<TileEntityReactionChamber> REACTION_CHAMBER_TYPE = MachineBuilder

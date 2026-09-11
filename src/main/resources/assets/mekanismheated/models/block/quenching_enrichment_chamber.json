@@ -1,0 +1,12 @@
+{
+  "parent": "mekanism:block/machine",
+  "textures": {
+    "sides": "mekanismheated:block/quenching_enrichment_chamber/right",
+    "front": "mekanismheated:block/quenching_enrichment_chamber/front",
+    "west": "mekanismheated:block/quenching_enrichment_chamber/right",
+    "east": "mekanismheated:block/quenching_enrichment_chamber/left",
+    "south": "mekanismheated:block/quenching_enrichment_chamber/back",
+    "up": "mekanismheated:block/quenching_enrichment_chamber/top",
+    "down": "mekanismheated:block/quenching_enrichment_chamber/bottom"
+  }
+}

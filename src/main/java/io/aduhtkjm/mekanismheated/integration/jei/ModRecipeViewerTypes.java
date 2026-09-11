@@ -6,6 +6,7 @@ import io.aduhtkjm.mekanismheated.recipe.CondenserRecipe;
 import io.aduhtkjm.mekanismheated.recipe.FractionationRecipe;
 import io.aduhtkjm.mekanismheated.recipe.HeatedItemStackToFluidRecipe;
 import io.aduhtkjm.mekanismheated.recipe.HeatedItemStackToItemStackRecipe;
+import io.aduhtkjm.mekanismheated.recipe.QuenchingRecipe;
 import io.aduhtkjm.mekanismheated.recipe.ReactionChamberRecipe;
 import io.aduhtkjm.mekanismheated.recipe.ShakerRecipe;
 import io.aduhtkjm.mekanismheated.registries.ModBlocks;
@@ -24,6 +25,8 @@ public final class ModRecipeViewerTypes {
           new ModRecipeViewerType<>(Mod.rl("shaking"), ModBlocks.SHAKER, -6, -10, 164, 62);
     public static final ModRecipeViewerType<CondenserRecipe> CONDENSING =
           new ModRecipeViewerType<>(Mod.rl("condensing"), ModBlocks.CONDENSER, -6, -10, 164, 62);
+    public static final ModRecipeViewerType<QuenchingRecipe> QUENCHING =
+          new ModRecipeViewerType<>(Mod.rl("quenching"), ModBlocks.QUENCHING_ENRICHMENT_CHAMBER, -6, -10, 164, 62);
     public static final ModRecipeViewerType<ReactionChamberRecipe> REACTION =
           new ModRecipeViewerType<>(Mod.rl("reaction"), ModBlocks.REACTION_CHAMBER, -2, -12, 164, 72);
     public static final ModRecipeViewerType<AtmosphereFuelRecipe> ATMOSPHERE_FUEL =
