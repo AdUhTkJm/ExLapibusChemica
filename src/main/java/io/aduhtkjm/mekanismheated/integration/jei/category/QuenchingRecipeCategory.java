@@ -30,11 +30,10 @@ public class QuenchingRecipeCategory extends HolderRecipeCategory<QuenchingRecip
 
     public QuenchingRecipeCategory(IGuiHelper helper, IRecipeViewerRecipeType<QuenchingRecipe> recipeType) {
         super(helper, recipeType);
-        inputTank = addElement(GuiFluidGauge.getDummy(GaugeType.STANDARD.with(DataType.INPUT), this, 6, 10));
-        input = addSlot(SlotType.INPUT, 64, 17);
-        addElement(new GuiUpArrow(this, 68, 38));
+        inputTank = addElement(GuiFluidGauge.getDummy(GaugeType.STANDARD.with(DataType.INPUT), this, 26, 10));
+        input = addSlot(SlotType.INPUT, 64, 35);
         addSimpleProgress(ProgressType.BAR, 86, 38);
-        outputTank = addElement(GuiFluidGauge.getDummy(GaugeType.STANDARD.with(DataType.OUTPUT), this, 139, 10));
+        outputTank = addElement(GuiFluidGauge.getDummy(GaugeType.STANDARD.with(DataType.OUTPUT), this, 115, 10));
         addElement(new GuiVerticalPowerBar(this, RecipeViewerUtils.FULL_BAR, 164, 16));
     }
 

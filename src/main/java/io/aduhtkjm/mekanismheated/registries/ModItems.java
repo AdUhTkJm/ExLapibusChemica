@@ -1,8 +1,10 @@
 package io.aduhtkjm.mekanismheated.registries;
 
 import io.aduhtkjm.mekanismheated.Mod;
+import io.aduhtkjm.mekanismheated.content.obsidiandust.ObsidianDustVariant;
 import io.aduhtkjm.mekanismheated.content.unstablelava.UnstableLavaVariant;
 import io.aduhtkjm.mekanismheated.item.*;
+import java.util.List;
 import mekanism.common.registration.impl.ItemDeferredRegister;
 import mekanism.common.registration.impl.ItemRegistryObject;
 import net.minecraft.world.item.CreativeModeTab;
@@ -24,6 +26,17 @@ public class ModItems {
     public static final ItemRegistryObject<ItemFeS2Dust> FES2_DUST = ITEMS.registerItem("fes2_dust", ItemFeS2Dust::new);
     public static final ItemRegistryObject<ItemCu2SDust> CU2S_DUST = ITEMS.registerItem("cu2s_dust", ItemCu2SDust::new);
     public static final ItemRegistryObject<ItemPureCuODust> PURE_CUO_DUST = ITEMS.registerItem("pure_cuo_dust", ItemPureCuODust::new);
+
+    //Obsidian dusts: obsidian dust with the metal it was condensed from in its top-left corner. One register call per
+    //ore; the matching overlay textures come from scripts/obsidian_dust_overlay.py.
+    public static final ObsidianDustVariant IRON_OBSIDIAN_DUST = ObsidianDustVariant.register(ITEMS, "iron", "Fe");
+    public static final ObsidianDustVariant COPPER_OBSIDIAN_DUST = ObsidianDustVariant.register(ITEMS, "copper", "Cu");
+    public static final ObsidianDustVariant TIN_OBSIDIAN_DUST = ObsidianDustVariant.register(ITEMS, "tin", "Sn");
+    public static final ObsidianDustVariant OSMIUM_OBSIDIAN_DUST = ObsidianDustVariant.register(ITEMS, "osmium", "Os");
+
+    /** Every obsidian dust variant, in the order they are shown in the creative tab. */
+    public static final List<ObsidianDustVariant> OBSIDIAN_DUSTS =
+          List.of(IRON_OBSIDIAN_DUST, COPPER_OBSIDIAN_DUST, TIN_OBSIDIAN_DUST, OSMIUM_OBSIDIAN_DUST);
 
     public static void registerDisplayedItems(CreativeModeTab.ItemDisplayParameters itemDisplayParameters, CreativeModeTab.Output output) {
         output.accept(ModBlocks.HEAT_SMELTER);
@@ -52,6 +65,9 @@ public class ModItems {
         output.accept(ModItems.CACO3_DUST.get());
         output.accept(ModItems.FES2_DUST.get());
         output.accept(ModItems.CU2S_DUST.get());
+        for (ObsidianDustVariant variant : OBSIDIAN_DUSTS) {
+            output.accept(variant.item().get());
+        }
 
         output.accept(ModFluids.WOOD_TAR.getBucket());
         output.accept(ModFluids.ASPHALT.getBucket());
